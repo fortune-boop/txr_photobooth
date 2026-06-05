@@ -202,7 +202,7 @@ html,body{width:100%;height:100%;background:var(--dark);overflow:hidden;touch-ac
       <video id="video" autoplay playsinline muted></video>
       <div class="snowflakes" id="snowflakes"></div>
       <div class="sticker-layer" id="stickerLayer"></div>
-      <img id="frameImg" alt="" src="">
+      <img id="frameImg" alt="" src="" crossorigin="anonymous">
       <div class="no-cam" id="noCam" style="display:none">
         <div style="font-size:28px">📷</div>
         <div style="font-family:'Press Start 2P',monospace;font-size:8px">카메라 없음</div>
@@ -348,11 +348,15 @@ async function startBooth(){
 function loadFrameImg(fid){
   const f=FRAMES[fid];
   const img=document.getElementById('frameImg');
+  img.crossOrigin='anonymous';
   img.onload=function(){ layoutFrame(fid); };
   img.onerror=function(){ layoutFrame(fid); };
-  img.src=f.src;
-  // 이미 캐시된 경우 onload 안 불릴 수 있으므로
-  if(img.complete && img.naturalWidth>0) layoutFrame(fid);
+  // src 변경 전에 crossOrigin 설정 필수
+  if(img.src !== location.origin+'/'+f.src && img.src !== f.src){
+    img.src = f.src;
+  } else if(img.complete && img.naturalWidth>0){
+    layoutFrame(fid);
+  }
 }
 
 function updateIndicator(){
@@ -431,76 +435,107 @@ window.addEventListener('resize',()=>{ if(currentFrameIds.length) layoutFrame(cu
 
 // ── 촬영 ──
 function takeShot(){
-  if(isShooting) return; // 중복 방지
+  if(isShooting) return;
+  const v0=document.getElementById('video');
+  // 카메라 준비 안됐으면 무시
+  if(!v0.srcObject || v0.readyState < 2){
+    return;
+  }
   isShooting=true;
   document.getElementById('shutterBtn').style.opacity='0.4';
 
-  const fid=currentFrameIds[Math.min(shotCount,currentFrameIds.length-1)];
-  const f=FRAMES[fid];
-  const v=document.getElementById('video');
-  const fc=document.getElementById('frameContainer');
-  const frameImgEl=document.getElementById('frameImg');
+  const fid = currentFrameIds[Math.min(shotCount, currentFrameIds.length-1)];
+  const f = FRAMES[fid];
+  const v = document.getElementById('video');
+  const fc = document.getElementById('frameContainer');
 
-  // 출력 해상도: 프레임 비율 기준 2000px 장변
-  const LONG=2000;
-  const CW=f.aspect>=1?LONG:Math.round(LONG*f.aspect);
-  const CH=f.aspect>=1?Math.round(LONG/f.aspect):LONG;
+  // 출력 해상도
+  const LONG = 2000;
+  const CW = f.aspect >= 1 ? LONG : Math.round(LONG * f.aspect);
+  const CH = f.aspect >= 1 ? Math.round(LONG / f.aspect) : LONG;
 
-  const cv=document.getElementById('canvas');
-  cv.width=CW; cv.height=CH;
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,CW,CH);
+  const cv = document.getElementById('canvas');
+  cv.width = CW; cv.height = CH;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, CW, CH);
 
-  // 1) 비디오: 구멍 영역에 cover fit
+  // 1) 비디오: 구멍에 cover fit
   const hX=f.hx*CW, hY=f.hy*CH, hW=f.hw*CW, hH=f.hh*CH;
-  const vw=v.videoWidth||hW, vh=v.videoHeight||hH;
-  const sc=Math.max(hW/vw,hH/vh)*currentZoom;
-  const dw=vw*sc, dh=vh*sc;
-  const dx=hX+(hW-dw)/2, dy=hY+(hH-dh)/2;
+  const vw = v.videoWidth  || hW;
+  const vh = v.videoHeight || hH;
+  const sc = Math.max(hW/vw, hH/vh) * currentZoom;
+  const dw = vw*sc, dh = vh*sc;
+  const dx = hX + (hW-dw)/2;
+  const dy = hY + (hH-dh)/2;
   ctx.save();
-  ctx.beginPath(); ctx.rect(hX,hY,hW,hH); ctx.clip();
-  if(facing==='user'){ ctx.translate(hX*2+hW,0); ctx.scale(-1,1); }
-  ctx.drawImage(v,dx,dy,dw,dh);
+  ctx.beginPath(); ctx.rect(hX, hY, hW, hH); ctx.clip();
+  if(facing==='user'){ ctx.translate(hX*2+hW, 0); ctx.scale(-1,1); }
+  ctx.drawImage(v, dx, dy, dw, dh);
   ctx.restore();
 
   // 2) 스티커
-  const stickers=document.getElementById('stickerLayer').querySelectorAll('.sticker-item');
-  const sxR=CW/fc.offsetWidth, syR=CH/fc.offsetHeight;
-  stickers.forEach(s=>{
+  const sxR = CW/fc.offsetWidth, syR = CH/fc.offsetHeight;
+  document.getElementById('stickerLayer').querySelectorAll('.sticker-item').forEach(s=>{
     const ex=parseFloat(s.dataset.x)*sxR, ey=parseFloat(s.dataset.y)*syR;
     const sc2=parseFloat(s.dataset.scale)||1;
     const rot=(parseFloat(s.dataset.rot)||0)*Math.PI/180;
     ctx.save();
-    ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(sc2*sxR,sc2*syR);
+    ctx.translate(ex, ey); ctx.rotate(rot); ctx.scale(sc2*sxR, sc2*syR);
     const span=s.querySelector('span');
-    if(span){ ctx.font='34px serif'; ctx.fillText(span.textContent,0,34); }
-    else{
+    if(span){
+      ctx.font='34px serif';
+      ctx.fillText(span.textContent, 0, 34);
+    } else {
       const inner=s.querySelector('div');
       if(inner){
-        const txt=inner.childNodes[0]?.nodeValue?.trim()||inner.textContent.trim().split('\n')[0].trim();
+        const raw=inner.textContent||'';
+        const txt=raw.trim().split('\n')[0].trim();
         const fs=14;
         ctx.font='bold '+fs+'px sans-serif';
         const tw=ctx.measureText(txt).width;
-        ctx.fillStyle='rgba(255,248,238,0.94)'; ctx.fillRect(0,0,tw+24,30);
-        ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.strokeRect(0,0,tw+24,30);
-        ctx.fillStyle='#1a0a00'; ctx.fillText(txt,12,fs+5);
+        ctx.fillStyle='rgba(255,248,238,0.94)';
+        ctx.fillRect(0,0,tw+24,30);
+        ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5;
+        ctx.strokeRect(0,0,tw+24,30);
+        ctx.fillStyle='#1a0a00';
+        ctx.fillText(txt,12,fs+5);
         ctx.fillStyle='#c0392b';
-        ctx.beginPath(); ctx.moveTo(16,30); ctx.lineTo(8,41); ctx.lineTo(32,30); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(16,30); ctx.lineTo(8,41); ctx.lineTo(32,30);
+        ctx.fill();
       }
     }
     ctx.restore();
   });
 
-  // 3) PNG 프레임 오버레이
+  // 3) 프레임 PNG 오버레이 후 완료
   function finalize(){
-    const dataUrl=cv.toDataURL('image/jpeg',0.92);
-    shots.push(dataUrl); shotCount++;
     isShooting=false;
     document.getElementById('shutterBtn').style.opacity='1';
-    if(totalShots===4&&shotCount<4){
-      clearAll(); updateIndicator();
-      const nextFid=currentFrameIds[shotCount];
-      document.getElementById('boothTitle').textContent=FRAMES[nextFid].label;
+    let dataUrl;
+    try {
+      dataUrl = cv.toDataURL('image/jpeg', 0.92);
+    } catch(e) {
+      // tainted canvas - 프레임 없이 저장
+      const cv2 = document.getElementById('canvas');
+      const ctx2 = cv2.getContext('2d');
+      ctx2.clearRect(0,0,CW,CH);
+      const vw2=v.videoWidth||CW, vh2=v.videoHeight||CH;
+      const sc2x=Math.max(CW/vw2,CH/vh2)*currentZoom;
+      const dw2=vw2*sc2x, dh2=vh2*sc2x;
+      ctx2.save();
+      if(facing==='user'){ctx2.translate(CW,0);ctx2.scale(-1,1);}
+      ctx2.drawImage(v,(CW-dw2)/2,(CH-dh2)/2,dw2,dh2);
+      ctx2.restore();
+      dataUrl = cv2.toDataURL('image/jpeg', 0.92);
+    }
+    shots.push(dataUrl);
+    shotCount++;
+    if(totalShots===4 && shotCount<4){
+      clearAll();
+      updateIndicator();
+      const nextFid = currentFrameIds[shotCount];
+      document.getElementById('boothTitle').textContent = FRAMES[nextFid].label;
       loadFrameImg(nextFid);
       flash();
     } else {
@@ -509,17 +544,21 @@ function takeShot(){
     }
   }
 
-  function drawFrameAndFinalize(imgEl){
-    if(imgEl && imgEl.complete && imgEl.naturalWidth>0){
-      ctx.drawImage(imgEl,0,0,CW,CH); finalize();
+  // 프레임 이미지 그리기 — 실패해도 반드시 finalize 호출
+  const frameImgEl = document.getElementById('frameImg');
+  try {
+    if(frameImgEl && frameImgEl.complete && frameImgEl.naturalWidth>0){
+      ctx.drawImage(frameImgEl, 0, 0, CW, CH);
+      finalize();
     } else {
-      const img=new Image(); img.crossOrigin='anonymous';
-      img.onload=function(){ ctx.drawImage(img,0,0,CW,CH); finalize(); };
-      img.onerror=finalize;
-      img.src=f.src+'?t='+Date.now();
+      const img = new Image();
+      img.onload  = function(){ try{ ctx.drawImage(img,0,0,CW,CH); }catch(e){} finalize(); };
+      img.onerror = function(){ finalize(); };
+      img.src = f.src;
     }
+  } catch(e){
+    finalize();
   }
-  drawFrameAndFinalize(frameImgEl);
 }
 
 function flash(){

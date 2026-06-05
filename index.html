@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a0a00">
+<title>Texas Roadhouse Photo Booth</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700&display=swap');
+:root{--red:#c0392b;--gold:#e8a020;--cream:#fff8ee;--dark:#1a0a00;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:var(--dark);overflow:hidden;touch-action:manipulation}
+.btn{font-family:'Press Start 2P',monospace;cursor:pointer;border:none;outline:none;transition:transform .1s}
+.btn:active{transform:scale(.94)}
+.btn-red{background:var(--red);color:#fff;border-bottom:4px solid #8b1a1a;padding:10px 18px;font-size:9px;letter-spacing:1px}
+.btn-gold{background:var(--gold);color:var(--dark);border-bottom:4px solid #b06010;padding:10px 18px;font-size:9px;letter-spacing:1px}
+.btn-sm{padding:7px 13px;font-size:7px}
+.btn-ghost{background:transparent;color:var(--gold);border:2px solid rgba(232,160,32,.4);font-family:'Press Start 2P',monospace;font-size:7px;padding:7px 13px;cursor:pointer}
+
+/* ── LANDING ── */
+#scLanding{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;background:var(--dark);z-index:10;overflow-y:auto;padding:12px 0 20px}
+.land-logo{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:clamp(13px,3.5vw,20px);text-align:center;line-height:1.5;text-shadow:3px 3px 0 var(--red);margin-bottom:4px;margin-top:8px}
+.land-sub{font-family:'Press Start 2P',monospace;color:var(--red);font-size:7px;letter-spacing:2px;margin-bottom:14px}
+.land-top{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:7px;letter-spacing:2px;opacity:.6}
+.mode-row{display:flex;gap:10px;margin-bottom:12px}
+.mode-btn{font-family:'Press Start 2P',monospace;font-size:8px;color:rgba(255,248,238,.4);background:transparent;border:2px solid rgba(232,160,32,.28);padding:8px 16px;cursor:pointer;transition:all .15s}
+.mode-btn.active,.mode-btn:hover{color:var(--gold);border-color:var(--gold);background:rgba(232,160,32,.1)}
+.frame-section-title{font-family:'Press Start 2P',monospace;font-size:7px;color:rgba(232,160,32,.5);letter-spacing:1px;width:100%;max-width:380px;padding:0 12px;margin-bottom:6px;margin-top:10px}
+.frame-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:380px;padding:0 12px}
+.frame-card{position:relative;border:2px solid rgba(232,160,32,.28);cursor:pointer;overflow:hidden;background:#0e0500;transition:border-color .15s,transform .1s}
+.frame-card:hover,.frame-card.active{border-color:var(--gold);transform:scale(1.02)}
+.frame-card .fc-img{width:100%;display:block;object-fit:cover}
+.frame-card .fc-label{position:absolute;bottom:0;left:0;right:0;background:rgba(26,10,0,.82);font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gold);padding:3px 5px;text-align:center}
+.frame-card .fc-check{position:absolute;top:4px;right:4px;width:15px;height:15px;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:9px;color:#1a0a00}
+.frame-card.active .fc-check{display:flex}
+
+/* ── BOOTH ── */
+#scBooth{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;background:#0a0400;z-index:10}
+.booth-topbar{width:100%;max-width:520px;background:#110600;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:2px solid rgba(232,160,32,.14)}
+.bt-title{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold)}
+.shot-indicator{display:flex;gap:6px}
+.shot-dot{width:10px;height:10px;background:rgba(255,255,255,.1);border:1px solid rgba(232,160,32,.22)}
+.shot-dot.done{background:var(--gold)}.shot-dot.cur{background:var(--red);animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* 핵심: 부스 뷰 - 프레임 비율에 맞게 동적으로 설정됨 */
+.booth-viewport{
+  position:relative;
+  flex:1;
+  width:100%;
+  max-width:520px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+}
+/* 프레임 컨테이너: 프레임 원본 비율 유지 */
+#frameContainer{
+  position:relative;
+  /* width/height는 JS에서 동적 설정 */
+  flex-shrink:0;
+}
+/* 카메라 video: 구멍 위치/크기에 맞게 absolute 배치 */
+#video{
+  position:absolute;
+  object-fit:cover;
+  /* top/left/width/height: JS에서 동적 설정 */
+  z-index:1;
+  background:#000;
+}
+/* 프레임 PNG: video 위에 덮임 */
+#frameImg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  z-index:3;
+  pointer-events:none;
+  display:block;
+}
+#canvas{display:none}
+.sticker-layer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.sticker-item{position:absolute;pointer-events:auto;touch-action:none;user-select:none;transform-origin:center center}
+.snowflakes{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.sf{position:absolute;color:rgba(255,255,255,.55);animation:fall linear infinite}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:.9}100%{transform:translateY(105%);opacity:0}}
+.no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d0500;color:var(--gold);font-size:12px;gap:10px;text-align:center;padding:2rem;z-index:20}
+
+.zoom-bar{width:100%;max-width:520px;background:#110600;padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid rgba(232,160,32,.08)}
+.zoom-bar input{flex:1;accent-color:var(--gold);height:3px;cursor:pointer}
+.zoom-bar span{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);width:32px;text-align:right}
+.tool-bar{width:100%;max-width:520px;background:#0e0500;padding:6px 10px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-top:1px solid rgba(232,160,32,.08);align-items:center}
+.tool-bar::-webkit-scrollbar{display:none}
+.tool-opt{font-size:22px;cursor:pointer;padding:3px 4px;border:1px solid transparent;flex-shrink:0;line-height:1}
+.tool-opt:hover{background:rgba(232,160,32,.12);border-color:rgba(232,160,32,.3)}
+.tool-sep{width:1px;height:18px;background:rgba(232,160,32,.16);flex-shrink:0;margin:0 2px}
+.tool-label{font-family:'Press Start 2P',monospace;font-size:5px;color:rgba(232,160,32,.4);flex-shrink:0;white-space:nowrap}
+.tool-tbtn{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gold);background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.28);padding:4px 7px;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.ctrl-bar{width:100%;max-width:520px;background:#110600;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.ctrl-btn{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);background:transparent;border:2px solid rgba(232,160,32,.3);padding:8px 12px;cursor:pointer}
+.ctrl-btn:hover{background:rgba(232,160,32,.08)}
+.shutter-btn{width:54px;height:54px;border-radius:50%;background:var(--cream);border:4px solid rgba(255,255,255,.28);cursor:pointer;flex-shrink:0;box-shadow:0 0 0 2px var(--gold);transition:transform .1s}
+.shutter-btn:active{transform:scale(.9)}
+
+/* ── RESULT ── */
+#scResult{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;background:var(--dark);z-index:10}
+#resultImg{width:100%;max-width:520px;flex:1;object-fit:contain;display:block;min-height:0}
+.result-bar{width:100%;max-width:520px;background:#110600;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;border-top:2px solid rgba(232,160,32,.2)}
+.result-tag{font-family:'Press Start 2P',monospace;font-size:6px;color:rgba(232,160,32,.32);text-align:center;padding:6px;flex-shrink:0}
+
+/* ── MODALS ── */
+#bubbleModal,#igModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:60;align-items:center;justify-content:center;padding:1.5rem}
+.modal-box{background:#1a0a00;border:2px solid var(--gold);padding:1.25rem;width:100%;max-width:300px}
+.mb-title{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--gold);margin-bottom:12px}
+.modal-box input{width:100%;background:rgba(255,248,238,.06);border:1px solid rgba(232,160,32,.3);color:var(--cream);padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;margin-bottom:10px}
+.mb-row{display:flex;gap:8px}
+.ig-step{font-family:'Noto Sans KR',sans-serif;font-size:12px;color:rgba(255,220,150,.8);line-height:2.1}
+.ig-step b{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- ══ LANDING ══ -->
+<div id="scLanding">
+  <div class="land-top">★ PHOTO BOOTH ★</div>
+  <div class="land-logo">TEXAS<br>ROADHOUSE</div>
+  <div class="land-sub">CHRISTMAS 2024</div>
+  <div class="mode-row">
+    <button class="mode-btn active" id="btn1cut" onclick="setMode(1)">1컷</button>
+    <button class="mode-btn" id="btn4cut" onclick="setMode(4)">4컷</button>
+  </div>
+
+  <div class="frame-section-title">🍞 APPETIZER</div>
+  <div class="frame-grid">
+    <div class="frame-card active" id="fc_0" onclick="selectFrame(0)">
+      <img class="fc-img" src="frames/appetizer_roll.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">DINNER ROLL</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_1" onclick="selectFrame(1)">
+      <img class="fc-img" src="frames/appetizer_peanut.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">PEANUT</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_2" onclick="selectFrame(2)">
+      <img class="fc-img" src="frames/appetizer_steak.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">RIBEYE</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_3" onclick="selectFrame(3)">
+      <img class="fc-img" src="frames/appetizer_potato.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">LOADED POTATO</div><div class="fc-check">✓</div>
+    </div>
+  </div>
+
+  <div class="frame-section-title">🤠 TX CHRISTMAS</div>
+  <div class="frame-grid">
+    <div class="frame-card" id="fc_4" onclick="selectFrame(4)">
+      <img class="fc-img" src="frames/xmas_rope.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">TEXAS ROPE</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_5" onclick="selectFrame(5)">
+      <img class="fc-img" src="frames/xmas_merry.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">MERRY TX</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_6" onclick="selectFrame(6)">
+      <img class="fc-img" src="frames/xmas_longhorn.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">LONGHORN</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_7" onclick="selectFrame(7)">
+      <img class="fc-img" src="frames/xmas_truck.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">TX TRUCK</div><div class="fc-check">✓</div>
+    </div>
+  </div>
+
+  <div class="frame-section-title">🦔 ANDY</div>
+  <div class="frame-grid">
+    <div class="frame-card" id="fc_8" onclick="selectFrame(8)">
+      <img class="fc-img" src="frames/andy_santa.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">ANDY SANTA</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_9" onclick="selectFrame(9)">
+      <img class="fc-img" src="frames/andy_texas.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">ANDY TEXAS</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_10" onclick="selectFrame(10)">
+      <img class="fc-img" src="frames/andy_star.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">ANDY STAR</div><div class="fc-check">✓</div>
+    </div>
+    <div class="frame-card" id="fc_11" onclick="selectFrame(11)">
+      <img class="fc-img" src="frames/andy_cozy.png" onerror="this.parentElement.style.minHeight='80px'">
+      <div class="fc-label">ANDY COZY</div><div class="fc-check">✓</div>
+    </div>
+  </div>
+
+  <button class="btn btn-red" style="margin-top:14px;margin-bottom:8px" onclick="startBooth()">START ▶</button>
+</div>
+
+<!-- ══ BOOTH ══ -->
+<div id="scBooth">
+  <div class="booth-topbar">
+    <span class="bt-title" id="boothTitle">PHOTO BOOTH</span>
+    <div class="shot-indicator" id="shotIndicator"></div>
+  </div>
+
+  <div class="booth-viewport" id="boothViewport">
+    <div id="frameContainer">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="snowflakes" id="snowflakes"></div>
+      <div class="sticker-layer" id="stickerLayer"></div>
+      <img id="frameImg" alt="" src="">
+      <div class="no-cam" id="noCam" style="display:none">
+        <div style="font-size:28px">📷</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:8px">카메라 없음</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:11px;opacity:.5;margin-top:6px">권한을 허용해주세요</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zoom-bar">
+    <span style="font-size:10px">🔍</span>
+    <input id="zoomSlider" type="range" min="0.5" max="4" step="0.1" value="1" oninput="applyZoom(parseFloat(this.value))">
+    <span id="zoomLabel">1.0x</span>
+  </div>
+  <div class="tool-bar">
+    <span class="tool-label">스티커</span>
+    <span class="tool-opt" onclick="addSticker('🤠')">🤠</span>
+    <span class="tool-opt" onclick="addSticker('🎄')">🎄</span>
+    <span class="tool-opt" onclick="addSticker('⭐')">⭐</span>
+    <span class="tool-opt" onclick="addSticker('❄️')">❄️</span>
+    <span class="tool-opt" onclick="addSticker('🎅')">🎅</span>
+    <span class="tool-opt" onclick="addSticker('🥩')">🥩</span>
+    <span class="tool-opt" onclick="addSticker('🍞')">🍞</span>
+    <span class="tool-opt" onclick="addSticker('🥔')">🥔</span>
+    <span class="tool-opt" onclick="addSticker('🥜')">🥜</span>
+    <div class="tool-sep"></div>
+    <span class="tool-label">문구</span>
+    <button class="tool-tbtn" onclick="showBubbleModal()">💬 말풍선</button>
+    <div class="tool-sep"></div>
+    <button class="tool-tbtn" onclick="clearAll()" style="color:rgba(255,100,100,.6)">🗑</button>
+  </div>
+  <div class="ctrl-bar">
+    <button class="ctrl-btn" onclick="flipCamera()">🔄</button>
+    <button class="shutter-btn" onclick="takeShot()"></button>
+    <button class="ctrl-btn" onclick="goLanding()">✕</button>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div id="scResult">
+  <img id="resultImg" alt="촬영 결과">
+  <div class="result-bar">
+    <button class="btn btn-red btn-sm" style="flex:1" onclick="downloadPhoto()">💾 저장</button>
+    <button class="btn btn-gold btn-sm" style="flex:1" onclick="openInstagram()">📸 인스타 공유</button>
+    <button class="btn-ghost btn-sm" style="flex:1" onclick="retake()">↩ 다시</button>
+  </div>
+  <div class="result-tag">#TxRH크리스마스 #텍사스로드하우스</div>
+</div>
+
+<!-- 말풍선 -->
+<div id="bubbleModal">
+  <div class="modal-box">
+    <div class="mb-title">💬 말풍선 추가</div>
+    <input id="bubbleInput" type="text" maxlength="20" placeholder="텍스트 입력 (최대 20자)">
+    <div class="mb-row">
+      <button class="btn btn-gold btn-sm" style="flex:1" onclick="addBubble()">추가</button>
+      <button class="btn-ghost btn-sm" style="flex:1" onclick="closeBubbleModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 인스타 -->
+<div id="igModal">
+  <div class="modal-box">
+    <div class="mb-title">📸 INSTAGRAM</div>
+    <div class="ig-step">1. <b>저장하기</b>로 사진 저장<br>2. 인스타그램 앱 열기<br>3. 스토리/피드에 업로드<br>4. <b>#TxRH크리스마스</b> 태그</div>
+    <div class="mb-row" style="margin-top:12px">
+      <button class="btn btn-red btn-sm" style="flex:1" onclick="downloadPhoto();closeIgModal()">💾 저장</button>
+      <button class="btn-ghost btn-sm" style="flex:1" onclick="closeIgModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 프레임 메타 (구멍 위치: 0~1 비율) ──
+const FRAMES = [
+  {id:0,  src:'frames/appetizer_roll.png',    label:'DINNER ROLL',    aspect:1.0000, hx:0.2105, hy:0.2137, hw:0.6172, hh:0.5853},
+  {id:1,  src:'frames/appetizer_peanut.png',  label:'PEANUT',         aspect:1.0000, hx:0.2313, hy:0.1978, hw:0.5758, hh:0.5550},
+  {id:2,  src:'frames/appetizer_steak.png',   label:'RIBEYE',         aspect:1.0000, hx:0.1738, hy:0.1994, hw:0.5853, hh:0.4833},
+  {id:3,  src:'frames/appetizer_potato.png',  label:'LOADED POTATO',  aspect:1.0000, hx:0.1722, hy:0.2632, hw:0.6077, hh:0.4833},
+  {id:4,  src:'frames/xmas_rope.png',         label:'TEXAS ROPE',     aspect:1.0000, hx:0.2233, hy:0.2632, hw:0.6316, hh:0.5805},
+  {id:5,  src:'frames/xmas_merry.png',        label:'MERRY TX',       aspect:1.5615, hx:0.2123, hy:0.3619, hw:0.4692, hh:0.5258},
+  {id:6,  src:'frames/xmas_longhorn.png',     label:'LONGHORN',       aspect:0.8324, hx:0.2451, hy:0.2041, hw:0.5065, hh:0.6081},
+  {id:7,  src:'frames/xmas_truck.png',        label:'TX TRUCK',       aspect:1.5615, hx:0.1016, hy:0.2014, hw:0.6678, hh:0.6221},
+  {id:8,  src:'frames/andy_santa.png',        label:'ANDY SANTA',     aspect:1.0000, hx:0.3684, hy:0.1571, hw:0.5247, hh:0.6938},
+  {id:9,  src:'frames/andy_texas.png',        label:'ANDY TEXAS',     aspect:0.9617, hx:0.2360, hy:0.2209, hw:0.6396, hh:0.6457},
+  {id:10, src:'frames/andy_star.png',         label:'ANDY STAR',      aspect:0.9617, hx:0.1515, hy:0.1043, hw:0.7049, hh:0.6610},
+  {id:11, src:'frames/andy_cozy.png',         label:'ANDY COZY',      aspect:1.1901, hx:0.1611, hy:0.1769, hw:0.6944, hh:0.6099},
+];
+
+// ── 상태 ──
+let stream=null, facing='user';
+let currentZoom=1, pinchStartDist=0, pinchStartZoom=1;
+let selectedMode=1, selectedFrameId=0;
+let shotCount=0, shots=[], totalShots=1;
+let gestureTarget=null;
+// 4컷 모드 시 각 컷에 사용할 프레임 ID 순서 (에피타이저: 0~3, 나머지: 같은 거 4번)
+function getFrameIds(){
+  if(selectedMode===1) return [selectedFrameId];
+  const g = FRAMES[selectedFrameId].src.split('/')[1].split('_')[0]; // appetizer / xmas / andy
+  if(g==='appetizer') return [0,1,2,3];
+  return [selectedFrameId,selectedFrameId,selectedFrameId,selectedFrameId];
+}
+
+function setMode(m){
+  selectedMode=m;
+  document.getElementById('btn1cut').classList.toggle('active',m===1);
+  document.getElementById('btn4cut').classList.toggle('active',m===4);
+}
+function selectFrame(id){
+  selectedFrameId=id;
+  document.querySelectorAll('.frame-card').forEach(c=>c.classList.remove('active'));
+  const el=document.getElementById('fc_'+id);
+  if(el) el.classList.add('active');
+}
+
+// ── 레이아웃 계산 ──
+// 프레임 비율에 맞게 frameContainer 크기 설정,
+// video는 구멍 위치에 absolute 배치
+function layoutFrame(frameId){
+  const f = FRAMES[frameId];
+  const vp = document.getElementById('boothViewport');
+  const vpW = vp.offsetWidth;
+  const vpH = vp.offsetHeight;
+
+  // 프레임 컨테이너 크기: viewport에 맞게 aspect 유지
+  let cW, cH;
+  if(vpW/vpH > f.aspect){
+    cH = vpH;
+    cW = cH * f.aspect;
+  } else {
+    cW = vpW;
+    cH = cW / f.aspect;
+  }
+
+  const fc = document.getElementById('frameContainer');
+  fc.style.width = cW + 'px';
+  fc.style.height = cH + 'px';
+
+  // 구멍 위치 (px)
+  const hX = f.hx * cW;
+  const hY = f.hy * cH;
+  const hW = f.hw * cW;
+  const hH = f.hh * cH;
+
+  const v = document.getElementById('video');
+  v.style.left   = hX + 'px';
+  v.style.top    = hY + 'px';
+  v.style.width  = hW + 'px';
+  v.style.height = hH + 'px';
+
+  // 현재 zoom 재적용
+  applyZoom(currentZoom);
+}
+
+// ── 부스 시작 ──
+async function startBooth(){
+  totalShots = selectedMode===4 ? 4 : 1;
+  shotCount=0; shots=[];
+  const frameIds = getFrameIds();
+  document.getElementById('boothTitle').textContent = FRAMES[selectedFrameId].label;
+  updateIndicator();
+  setFrameImg(frameIds[0]);
+  document.getElementById('scLanding').style.display='none';
+  document.getElementById('scBooth').style.display='flex';
+  makeSnow();
+  // 레이아웃은 카메라 시작 후 viewport 크기 확정되면 적용
+  await startCamera();
+  setTimeout(()=>layoutFrame(frameIds[0]), 80);
+}
+
+function setFrameImg(frameId){
+  const f = FRAMES[frameId];
+  const img = document.getElementById('frameImg');
+  img.src = f.src;
+  img.onerror = function(){ img.src=''; };
+  // 이미지 로드 후 레이아웃
+  img.onload = function(){ layoutFrame(frameId); };
+}
+
+function updateIndicator(){
+  const el=document.getElementById('shotIndicator');
+  if(totalShots===1){el.innerHTML='';return;}
+  el.innerHTML=Array.from({length:totalShots},(_,i)=>{
+    let c='shot-dot';
+    if(i<shotCount) c+=' done';
+    else if(i===shotCount) c+=' cur';
+    return '<div class="'+c+'"></div>';
+  }).join('');
+}
+
+// ── 줌 ──
+function applyZoom(z){
+  currentZoom=Math.max(0.5,Math.min(4,z));
+  const v=document.getElementById('video');
+  // transform: mirror(전면) + scale
+  const mirror = facing==='user' ? 'scaleX(-1)' : 'scaleX(1)';
+  v.style.transform = mirror + ' scale('+currentZoom+')';
+  const sl=document.getElementById('zoomSlider'); if(sl) sl.value=currentZoom;
+  const lb=document.getElementById('zoomLabel'); if(lb) lb.textContent=currentZoom.toFixed(1)+'x';
+}
+
+// ── 카메라 ──
+async function startCamera(){
+  try{
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:facing, width:{ideal:1920}, height:{ideal:1920}}, audio:false
+    });
+    const v=document.getElementById('video');
+    v.srcObject=stream;
+    applyZoom(1);
+    document.getElementById('noCam').style.display='none';
+    v.style.display='block';
+  }catch(e){
+    document.getElementById('noCam').style.display='flex';
+    document.getElementById('video').style.display='none';
+  }
+}
+async function flipCamera(){ facing=facing==='user'?'environment':'user'; await startCamera(); }
+
+// 핀치 줌 (카메라용)
+const vp = document.getElementById('boothViewport');
+vp.addEventListener('touchstart',e=>{
+  if(e.touches.length===2&&!gestureTarget){
+    pinchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    pinchStartZoom=currentZoom;
+  }
+},{passive:true});
+vp.addEventListener('touchmove',e=>{
+  if(e.touches.length===2&&!gestureTarget){
+    e.preventDefault();
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    applyZoom(pinchStartZoom*(d/pinchStartDist));
+  }
+},{passive:false});
+
+// 창 크기 변경 시 레이아웃 재계산
+window.addEventListener('resize',()=>{
+  const frameIds=getFrameIds();
+  const fid=frameIds[Math.min(shotCount,frameIds.length-1)];
+  layoutFrame(fid);
+});
+
+// ── 스티커 ──
+function addSticker(emoji){
+  const layer=document.getElementById('stickerLayer');
+  const fc=document.getElementById('frameContainer');
+  const el=document.createElement('div');
+  el.className='sticker-item';
+  el.innerHTML='<span style="font-size:34px;line-height:1;display:block">'+emoji+'</span>';
+  el.dataset.x=fc.offsetWidth/2-17+Math.random()*20-10;
+  el.dataset.y=fc.offsetHeight/2-17+Math.random()*20-10;
+  el.dataset.scale=1; el.dataset.rot=0;
+  applyStickerTransform(el);
+  attachStickerEvents(el);
+  layer.appendChild(el);
+}
+
+function showBubbleModal(){ document.getElementById('bubbleModal').style.display='flex'; setTimeout(()=>document.getElementById('bubbleInput').focus(),80); }
+function closeBubbleModal(){ document.getElementById('bubbleModal').style.display='none'; document.getElementById('bubbleInput').value=''; }
+
+function addBubble(){
+  const txt=document.getElementById('bubbleInput').value.trim();
+  if(!txt) return;
+  const layer=document.getElementById('stickerLayer');
+  const fc=document.getElementById('frameContainer');
+  const el=document.createElement('div');
+  el.className='sticker-item';
+  el.dataset.x=fc.offsetWidth/2-60; el.dataset.y=fc.offsetHeight/2-24;
+  el.dataset.scale=1; el.dataset.rot=0;
+  el.innerHTML='<div style="position:relative;background:rgba(255,248,238,0.94);border:2.5px solid #c0392b;border-radius:8px;padding:6px 11px;max-width:160px;font-family:\'Noto Sans KR\',sans-serif;font-size:13px;color:#1a0a00;font-weight:700;white-space:nowrap;box-shadow:2px 2px 0 #8b1a1a">'+txt+'<div style="position:absolute;bottom:-11px;left:16px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid #c0392b"></div></div>';
+  applyStickerTransform(el);
+  attachStickerEvents(el);
+  layer.appendChild(el);
+  closeBubbleModal();
+}
+
+function applyStickerTransform(el){
+  el.style.left=parseFloat(el.dataset.x)+'px';
+  el.style.top=parseFloat(el.dataset.y)+'px';
+  el.style.transform='rotate('+el.dataset.rot+'deg) scale('+el.dataset.scale+')';
+}
+
+function attachStickerEvents(el){
+  const fc=document.getElementById('frameContainer');
+  let singleStart={x:0,y:0,ex:0,ey:0};
+  let pinchStart={dist:0,angle:0,scale:1,rot:0};
+  let tapTime=0;
+
+  el.addEventListener('touchstart',e=>{
+    e.stopPropagation();
+    if(e.touches.length===1){
+      e.preventDefault(); gestureTarget=el;
+      singleStart={x:e.touches[0].clientX,y:e.touches[0].clientY,ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)};
+    } else if(e.touches.length===2){
+      e.preventDefault(); gestureTarget=el;
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      pinchStart={dist:Math.hypot(dx,dy),angle:Math.atan2(dy,dx)*180/Math.PI,scale:parseFloat(el.dataset.scale)||1,rot:parseFloat(el.dataset.rot)||0};
+    }
+  },{passive:false});
+
+  el.addEventListener('touchmove',e=>{
+    e.stopPropagation(); e.preventDefault();
+    const wr=fc.getBoundingClientRect();
+    if(e.touches.length===1&&gestureTarget===el){
+      el.dataset.x=Math.max(-30,Math.min(wr.width-10,singleStart.ex+(e.touches[0].clientX-singleStart.x)));
+      el.dataset.y=Math.max(-30,Math.min(wr.height-10,singleStart.ey+(e.touches[0].clientY-singleStart.y)));
+    } else if(e.touches.length===2&&gestureTarget===el){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      el.dataset.scale=Math.max(0.2,Math.min(5,pinchStart.scale*(Math.hypot(dx,dy)/pinchStart.dist)));
+      el.dataset.rot=pinchStart.rot+(Math.atan2(dy,dx)*180/Math.PI-pinchStart.angle);
+    }
+    applyStickerTransform(el);
+  },{passive:false});
+
+  el.addEventListener('touchend',e=>{
+    e.stopPropagation();
+    if(e.touches.length===0){
+      const now=Date.now(); if(now-tapTime<300) el.remove(); tapTime=now; gestureTarget=null;
+    }
+  });
+
+  let mDrag=false, mStart={x:0,y:0,ex:0,ey:0};
+  el.addEventListener('mousedown',e=>{e.stopPropagation();mDrag=true;gestureTarget=el;mStart={x:e.clientX,y:e.clientY,ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)};});
+  document.addEventListener('mousemove',e=>{
+    if(!mDrag||gestureTarget!==el) return;
+    const wr=fc.getBoundingClientRect();
+    el.dataset.x=Math.max(-30,Math.min(wr.width-10,mStart.ex+(e.clientX-mStart.x)));
+    el.dataset.y=Math.max(-30,Math.min(wr.height-10,mStart.ey+(e.clientY-mStart.y)));
+    applyStickerTransform(el);
+  });
+  document.addEventListener('mouseup',()=>{mDrag=false;gestureTarget=null;});
+  el.addEventListener('dblclick',()=>el.remove());
+}
+
+function clearAll(){ document.getElementById('stickerLayer').innerHTML=''; }
+
+// ── 촬영 ──
+function takeShot(){
+  const frameIds = getFrameIds();
+  const currentFid = frameIds[Math.min(shotCount, frameIds.length-1)];
+  const f = FRAMES[currentFid];
+  const v = document.getElementById('video');
+  const fc = document.getElementById('frameContainer');
+  const frameImgEl = document.getElementById('frameImg');
+
+  // 출력 캔버스: 프레임 원본 비율 기준 2000px
+  const BASE = 2000;
+  const CW = f.aspect >= 1 ? BASE : Math.round(BASE * f.aspect);
+  const CH = f.aspect >= 1 ? Math.round(BASE / f.aspect) : BASE;
+
+  const cv = document.getElementById('canvas');
+  cv.width=CW; cv.height=CH;
+  const ctx = cv.getContext('2d');
+
+  // 1) 배경 투명 (PNG 프레임 배경이 채워줌)
+  ctx.clearRect(0,0,CW,CH);
+
+  // 2) 구멍 위치에 카메라 비디오 그리기
+  const hX = f.hx * CW, hY = f.hy * CH;
+  const hW = f.hw * CW, hH = f.hh * CH;
+  const vw = v.videoWidth||hW, vh = v.videoHeight||hH;
+  // cover fit inside hole
+  const sc = Math.max(hW/vw, hH/vh) * currentZoom;
+  const dw = vw*sc, dh = vh*sc;
+  const dx = hX + (hW-dw)/2, dy = hY + (hH-dh)/2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(hX, hY, hW, hH);
+  ctx.clip();
+  if(facing==='user'){ ctx.translate(hX*2+hW, 0); ctx.scale(-1,1); }
+  ctx.drawImage(v, dx, dy, dw, dh);
+  ctx.restore();
+
+  // 3) 스티커
+  const stickers = document.getElementById('stickerLayer').querySelectorAll('.sticker-item');
+  const sxR = CW/fc.offsetWidth, syR = CH/fc.offsetHeight;
+  stickers.forEach(s=>{
+    const ex=parseFloat(s.dataset.x)*sxR, ey=parseFloat(s.dataset.y)*syR;
+    const sc2=parseFloat(s.dataset.scale)||1;
+    const rot=(parseFloat(s.dataset.rot)||0)*Math.PI/180;
+    ctx.save();
+    ctx.translate(ex, ey);
+    ctx.rotate(rot); ctx.scale(sc2*sxR, sc2*syR);
+    const span=s.querySelector('span');
+    if(span){
+      ctx.font='34px serif';
+      ctx.fillText(span.textContent, 0, 34);
+    } else {
+      const inner=s.querySelector('div');
+      if(inner){
+        const txt=inner.childNodes[0]?.nodeValue?.trim()||inner.textContent.trim();
+        const fs=14;
+        ctx.font='bold '+fs+'px sans-serif';
+        const tw=ctx.measureText(txt).width;
+        ctx.fillStyle='rgba(255,248,238,0.94)'; ctx.fillRect(0,0,tw+24,30);
+        ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.strokeRect(0,0,tw+24,30);
+        ctx.fillStyle='#1a0a00'; ctx.fillText(txt,12,fs+5);
+        ctx.fillStyle='#c0392b';
+        ctx.beginPath(); ctx.moveTo(16,30); ctx.lineTo(8,41); ctx.lineTo(32,30); ctx.fill();
+      }
+    }
+    ctx.restore();
+  });
+
+  // 4) PNG 프레임 오버레이
+  function finalize(){
+    const dataUrl = cv.toDataURL('image/jpeg', 0.93);
+    shots.push(dataUrl); shotCount++;
+    if(totalShots===4 && shotCount<4){
+      clearAll(); updateIndicator();
+      const nextFid = frameIds[shotCount];
+      setFrameImg(nextFid);
+      flash();
+    } else {
+      if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+      if(totalShots===4) buildFour(); else showResult(dataUrl);
+    }
+  }
+
+  if(frameImgEl.complete && frameImgEl.naturalWidth>0){
+    ctx.drawImage(frameImgEl, 0, 0, CW, CH);
+    finalize();
+  } else {
+    const img=new Image(); img.crossOrigin='anonymous';
+    img.onload=function(){ ctx.drawImage(img,0,0,CW,CH); finalize(); };
+    img.onerror=finalize;
+    img.src=f.src;
+  }
+}
+
+function flash(){
+  const fc=document.getElementById('frameContainer');
+  const fl=document.createElement('div');
+  fl.style.cssText='position:absolute;inset:0;background:white;z-index:20;pointer-events:none;transition:opacity .2s';
+  fc.appendChild(fl);
+  setTimeout(()=>{fl.style.opacity='0';setTimeout(()=>fl.remove(),200);},30);
+}
+
+function buildFour(){
+  // 각 컷의 크기를 계산해서 2x2 그리드 합성
+  const GAP=12;
+  const BASE=1000;
+  // 4컷이 모두 같은 크기라고 가정하고 첫번째 기준
+  const frameIds=getFrameIds();
+  const f=FRAMES[frameIds[0]];
+  const CW=f.aspect>=1?BASE:Math.round(BASE*f.aspect);
+  const CH=f.aspect>=1?Math.round(BASE/f.aspect):BASE;
+  const cv=document.getElementById('canvas');
+  cv.width=CW*2+GAP*3; cv.height=CH*2+GAP*3;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#1a0a00'; ctx.fillRect(0,0,cv.width,cv.height);
+  const pos=[[GAP,GAP],[CW+GAP*2,GAP],[GAP,CH+GAP*2],[CW+GAP*2,CH+GAP*2]];
+  let done=0;
+  shots.forEach((src,i)=>{
+    const img=new Image();
+    img.onload=function(){
+      ctx.drawImage(img,pos[i][0],pos[i][1],CW,CH);
+      done++;
+      if(done===4){
+        ctx.fillStyle='rgba(232,160,32,0.5)'; ctx.font='bold 28px monospace'; ctx.textAlign='center';
+        ctx.fillText('TEXAS ROADHOUSE',cv.width/2,cv.height-18);
+        showResult(cv.toDataURL('image/jpeg',.92));
+      }
+    };
+    img.src=src;
+  });
+}
+
+function showResult(url){
+  document.getElementById('resultImg').src=url;
+  document.getElementById('scBooth').style.display='none';
+  document.getElementById('scResult').style.display='flex';
+}
+
+function downloadPhoto(){
+  const a=document.createElement('a');
+  a.download='TxRH-Christmas-'+Date.now()+'.jpg';
+  a.href=document.getElementById('resultImg').src; a.click();
+}
+
+function openInstagram(){
+  downloadPhoto();
+  setTimeout(()=>{
+    const ua=navigator.userAgent.toLowerCase();
+    if(/iphone|ipad|ipod/.test(ua)) window.location.href='instagram://app';
+    else if(/android/.test(ua)) window.location.href='intent://instagram.com/#Intent;package=com.instagram.android;scheme=https;end';
+    else window.open('https://www.instagram.com/','_blank');
+    setTimeout(()=>{document.getElementById('igModal').style.display='flex';},1400);
+  },700);
+}
+function closeIgModal(){ document.getElementById('igModal').style.display='none'; }
+
+function retake(){
+  document.getElementById('scResult').style.display='none';
+  shotCount=0; shots=[]; clearAll(); updateIndicator();
+  const frameIds=getFrameIds();
+  setFrameImg(frameIds[0]);
+  document.getElementById('scBooth').style.display='flex';
+  makeSnow(); startCamera();
+  setTimeout(()=>layoutFrame(frameIds[0]),80);
+}
+
+function goLanding(){
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  document.getElementById('scBooth').style.display='none';
+  document.getElementById('scResult').style.display='none';
+  document.getElementById('scLanding').style.display='flex';
+}
+
+function makeSnow(){
+  const c=document.getElementById('snowflakes'); c.innerHTML='';
+  for(let i=0;i<14;i++){
+    const s=document.createElement('div'); s.className='sf';
+    s.textContent=['*','·','✦','❄'][Math.floor(Math.random()*4)];
+    s.style.left=Math.random()*100+'%';
+    s.style.animationDuration=(4+Math.random()*6)+'s';
+    s.style.animationDelay=(Math.random()*5)+'s';
+    s.style.fontSize=(7+Math.random()*9)+'px';
+    c.appendChild(s);
+  }
+}
+</script>
+</body>
+</html>

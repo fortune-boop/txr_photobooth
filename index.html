@@ -375,101 +375,103 @@ function loadFimg(fid){
 // ── 촬영 ──
 function shoot(){
   if(shooting) return;
-  shooting=true;
-  document.getElementById('shutter').style.opacity='0.5';
+  shooting = true;
+  document.getElementById('shutter').style.opacity = '0.5';
 
-  var fid=fids[shotIdx];
-  var f=FRAMES[fid];
-  var v=document.getElementById('vid');
-  var fb=document.getElementById('fbox');
+  var fid = fids[shotIdx];
+  var f   = FRAMES[fid];
+  var v   = document.getElementById('vid');
+  var fb  = document.getElementById('fbox');
 
-  var LONG=2000;
-  var CW=f.aspect>=1?LONG:Math.round(LONG*f.aspect);
-  var CH=f.aspect>=1?Math.round(LONG/f.aspect):LONG;
+  // 캔버스 크기
+  var LONG = 2000;
+  var CW = f.aspect >= 1 ? LONG : Math.round(LONG * f.aspect);
+  var CH = f.aspect >= 1 ? Math.round(LONG / f.aspect) : LONG;
 
-  var cv=document.getElementById('canvas');
-  cv.width=CW; cv.height=CH;
-  var ctx=cv.getContext('2d');
-  ctx.fillStyle='#1a0a00';
-  ctx.fillRect(0,0,CW,CH);
+  var cv  = document.getElementById('canvas');
+  cv.width = CW; cv.height = CH;
+  var ctx = cv.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, CW, CH);
 
-  // 카메라
-  var hX=f.hx*CW, hY=f.hy*CH, hW=f.hw*CW, hH=f.hh*CH;
-  var vw=v.videoWidth>0?v.videoWidth:640;
-  var vh=v.videoHeight>0?v.videoHeight:640;
-  var sc=Math.max(hW/vw,hH/vh)*zoom;
+  // 카메라 - 테스트파일과 동일한 방식
+  var vw = v.videoWidth  > 0 ? v.videoWidth  : 640;
+  var vh = v.videoHeight > 0 ? v.videoHeight : 640;
+
+  var hX = f.hx*CW, hY = f.hy*CH, hW = f.hw*CW, hH = f.hh*CH;
+  var sc = Math.max(hW/vw, hH/vh) * zoom;
+  var dw = vw*sc, dh = vh*sc;
+
   ctx.save();
-  ctx.beginPath(); ctx.rect(hX,hY,hW,hH); ctx.clip();
-  if(facing==='user'){ctx.translate(hX*2+hW,0);ctx.scale(-1,1);}
-  ctx.drawImage(v,hX+(hW-vw*sc)/2,hY+(hH-vh*sc)/2,vw*sc,vh*sc);
+  ctx.rect(hX, hY, hW, hH);
+  ctx.clip();
+  if(facing === 'user') { ctx.translate(hX*2+hW, 0); ctx.scale(-1,1); }
+  ctx.drawImage(v, hX+(hW-dw)/2, hY+(hH-dh)/2, dw, dh);
   ctx.restore();
 
   // 스티커
-  var fbW=fb.offsetWidth||1, fbH=fb.offsetHeight||1;
+  var fbW = fb.offsetWidth  || 1;
+  var fbH = fb.offsetHeight || 1;
   document.getElementById('sl').querySelectorAll('.si').forEach(function(s){
-    var ex=parseFloat(s.dataset.x||0)*(CW/fbW);
-    var ey=parseFloat(s.dataset.y||0)*(CH/fbH);
-    var sc2=parseFloat(s.dataset.s||1);
-    var rot=(parseFloat(s.dataset.r||0))*Math.PI/180;
+    var ex  = parseFloat(s.dataset.x||0) * (CW/fbW);
+    var ey  = parseFloat(s.dataset.y||0) * (CH/fbH);
+    var sc2 = parseFloat(s.dataset.s||1);
+    var rot = parseFloat(s.dataset.r||0) * Math.PI/180;
     ctx.save();
-    ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(sc2*(CW/fbW),sc2*(CH/fbH));
-    var sp=s.querySelector('span');
-    if(sp){ctx.font='34px serif';ctx.fillText(sp.textContent,0,34);}
-    else{
-      var d=s.querySelector('div');
+    ctx.translate(ex, ey); ctx.rotate(rot); ctx.scale(sc2*(CW/fbW), sc2*(CH/fbH));
+    var sp = s.querySelector('span');
+    if(sp){ ctx.font='34px serif'; ctx.fillText(sp.textContent,0,34); }
+    else {
+      var d = s.querySelector('div');
       if(d){
-        var t=d.childNodes[0]&&d.childNodes[0].nodeValue?d.childNodes[0].nodeValue.trim():d.textContent.trim();
+        var t = d.firstChild&&d.firstChild.nodeValue ? d.firstChild.nodeValue.trim() : d.textContent.trim();
         ctx.font='bold 14px sans-serif';
-        var tw=ctx.measureText(t).width;
-        ctx.fillStyle='rgba(255,248,238,.94)';ctx.fillRect(0,0,tw+24,30);
-        ctx.strokeStyle='#c0392b';ctx.lineWidth=2.5;ctx.strokeRect(0,0,tw+24,30);
-        ctx.fillStyle='#1a0a00';ctx.fillText(t,12,19);
+        var tw = ctx.measureText(t).width;
+        ctx.fillStyle='rgba(255,248,238,.94)'; ctx.fillRect(0,0,tw+24,30);
+        ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.strokeRect(0,0,tw+24,30);
+        ctx.fillStyle='#1a0a00'; ctx.fillText(t,12,19);
         ctx.fillStyle='#c0392b';
-        ctx.beginPath();ctx.moveTo(16,30);ctx.lineTo(8,41);ctx.lineTo(32,30);ctx.fill();
+        ctx.beginPath(); ctx.moveTo(16,30); ctx.lineTo(8,41); ctx.lineTo(32,30); ctx.fill();
       }
     }
     ctx.restore();
   });
 
-  // 프레임 오버레이 후 완료
+  // 완료 처리
   function finish(){
-    shooting=false;
-    document.getElementById('shutter').style.opacity='1';
+    shooting = false;
+    document.getElementById('shutter').style.opacity = '1';
     var url;
-    try{url=cv.toDataURL('image/jpeg',0.92);}catch(e){url='';}
+    try { url = cv.toDataURL('image/jpeg', 0.92); }
+    catch(e) { url = ''; }
     shots.push(url);
     shotIdx++;
-    if(fids.length===4&&shotIdx<4){
+    if(fids.length === 4 && shotIdx < 4){
       clearStickers(); updateDots();
       loadFimg(fids[shotIdx]);
-      document.getElementById('bTitle').textContent=FRAMES[fids[shotIdx]].label;
+      document.getElementById('bTitle').textContent = FRAMES[fids[shotIdx]].label;
       flash();
     } else {
-      if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
-      if(fids.length===4) build4(); else showResult(url);
+      if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; }
+      if(fids.length === 4) build4(); else showResult(url);
     }
   }
 
-  // 캐시된 프레임 사용
-  if(cache[fid]){
-    try{ctx.drawImage(cache[fid],0,0,CW,CH);}catch(e){}
+  // 프레임 오버레이 - fimg가 로드돼 있으면 그리고, 아니면 그냥 finish
+  var fi = document.getElementById('fimg');
+  if(fi.naturalWidth > 0){
+    try { ctx.drawImage(fi, 0, 0, CW, CH); } catch(e){}
     finish();
   } else {
-    var fi=document.getElementById('fimg');
-    if(fi.complete&&fi.naturalWidth>0){
-      try{ctx.drawImage(fi,0,0,CW,CH);}catch(e){}
-      cache[fid]=fi;
+    fi.onload = function(){
+      try { ctx.drawImage(fi, 0, 0, CW, CH); } catch(e){}
       finish();
-    } else {
-      fi.onload=function(){
-        try{ctx.drawImage(fi,0,0,CW,CH);}catch(e){}
-        cache[fid]=fi;
-        finish();
-      };
-      fi.onerror=finish;
-    }
+    };
+    fi.onerror = finish;
+    if(!fi.src) finish();
   }
 }
+
 
 function flash(){
   var fb=document.getElementById('fbox');

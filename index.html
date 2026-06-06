@@ -52,7 +52,14 @@ html,body{width:100%;height:100%;background:var(--dark);overflow:hidden}
 /* 뷰포트 */
 .vp{position:relative;flex:1;width:100%;max-width:520px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0}
 #fbox{position:relative;flex-shrink:0}
-#vid{position:absolute;object-fit:cover;z-index:1;background:#000;transform-origin:center}
+#vid{
+  position:fixed;
+  top:-9999px;left:-9999px;
+  width:1280px;height:1280px;
+  object-fit:cover;
+  background:#000;
+  transform-origin:center
+}
 #fimg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:3;pointer-events:none}
 #canvas{display:none}
 .sl{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
@@ -161,6 +168,7 @@ html,body{width:100%;height:100%;background:var(--dark);overflow:hidden}
     <div id="fbox">
       <video id="vid" autoplay playsinline muted></video>
       <div class="sl" id="sl"></div>
+      <canvas id="preview" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></canvas>
       <img id="fimg" src="" alt="" crossorigin="anonymous">
     </div>
   </div>
@@ -195,6 +203,7 @@ html,body{width:100%;height:100%;background:var(--dark);overflow:hidden}
 
 <!-- 결과 -->
 <div id="sResult" class="screen px">
+  <textarea id="dbg" style="display:none"></textarea>
   <img id="rimg" alt="">
   <div class="rbar">
     <button class="rbtn rb-save px" onclick="dlPhoto()">💾 저장</button>
@@ -312,9 +321,41 @@ function startCam(){
     var v=document.getElementById('vid');
     v.srcObject=s;
     applyLayout(fids[shotIdx]);
+    startMirror();
   })
   .catch(function(e){ alert('카메라 오류: '+e.message); });
 }
+
+var mirrorRunning = false;
+function startMirror(){
+  if(mirrorRunning) return;
+  mirrorRunning = true;
+  function draw(){
+    if(!mirrorRunning) return;
+    var v   = document.getElementById('vid');
+    var pc  = document.getElementById('preview');
+    var fb  = document.getElementById('fbox');
+    var f   = FRAMES[fids[shotIdx]];
+    if(!f) { requestAnimationFrame(draw); return; }
+    var cW  = fb.offsetWidth, cH = fb.offsetHeight;
+    if(pc.width!==cW)  pc.width=cW;
+    if(pc.height!==cH) pc.height=cH;
+    var ctx = pc.getContext('2d');
+    ctx.clearRect(0,0,cW,cH);
+    var hX=f.hx*cW, hY=f.hy*cH, hW=f.hw*cW, hH=f.hh*cH;
+    var vw=v.videoWidth||640, vh=v.videoHeight||640;
+    var sc=Math.max(hW/vw,hH/vh)*zoom;
+    var dw=vw*sc, dh=vh*sc;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(hX,hY,hW,hH); ctx.clip();
+    if(facing==='user'){ctx.translate(hX*2+hW,0);ctx.scale(-1,1);}
+    ctx.drawImage(v,hX+(hW-dw)/2,hY+(hH-dh)/2,dw,dh);
+    ctx.restore();
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopMirror(){ mirrorRunning=false; }
 function flipCam(){
   facing=facing==='user'?'environment':'user';
   startCam();
@@ -330,9 +371,6 @@ function applyLayout(fid){
   else{cW=vpW;cH=cW/f.aspect;}
   var fb=document.getElementById('fbox');
   fb.style.width=cW+'px'; fb.style.height=cH+'px';
-  var v=document.getElementById('vid');
-  v.style.left=(f.hx*cW)+'px'; v.style.top=(f.hy*cH)+'px';
-  v.style.width=(f.hw*cW)+'px'; v.style.height=(f.hh*cH)+'px';
   setZoom(zoom);
 }
 window.addEventListener('resize',function(){
@@ -341,8 +379,6 @@ window.addEventListener('resize',function(){
 
 function setZoom(z){
   zoom=Math.max(0.5,Math.min(4,z));
-  var v=document.getElementById('vid');
-  v.style.transform=(facing==='user'?'scaleX(-1)':'scaleX(1)')+' scale('+zoom+')';
   document.getElementById('zLabel').textContent=zoom.toFixed(1)+'x';
 }
 
@@ -383,7 +419,6 @@ function shoot(){
   var v   = document.getElementById('vid');
   var fb  = document.getElementById('fbox');
 
-  // 캔버스 크기
   var LONG = 2000;
   var CW = f.aspect >= 1 ? LONG : Math.round(LONG * f.aspect);
   var CH = f.aspect >= 1 ? Math.round(LONG / f.aspect) : LONG;
@@ -394,39 +429,34 @@ function shoot(){
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CW, CH);
 
-  // 카메라 - 테스트파일과 동일한 방식
+  // 카메라 영상 그리기
   var vw = v.videoWidth  > 0 ? v.videoWidth  : 640;
   var vh = v.videoHeight > 0 ? v.videoHeight : 640;
-
-  var hX = f.hx*CW, hY = f.hy*CH, hW = f.hw*CW, hH = f.hh*CH;
+  var hX=f.hx*CW, hY=f.hy*CH, hW=f.hw*CW, hH=f.hh*CH;
   var sc = Math.max(hW/vw, hH/vh) * zoom;
-  var dw = vw*sc, dh = vh*sc;
-
   ctx.save();
+  ctx.beginPath();
   ctx.rect(hX, hY, hW, hH);
   ctx.clip();
-  if(facing === 'user') { ctx.translate(hX*2+hW, 0); ctx.scale(-1,1); }
-  ctx.drawImage(v, hX+(hW-dw)/2, hY+(hH-dh)/2, dw, dh);
+  if(facing === 'user'){ ctx.translate(hX*2+hW, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(v, hX+(hW-vw*sc)/2, hY+(hH-vh*sc)/2, vw*sc, vh*sc);
   ctx.restore();
 
   // 스티커
-  var fbW = fb.offsetWidth  || 1;
-  var fbH = fb.offsetHeight || 1;
+  var fbW = fb.offsetWidth || 1, fbH = fb.offsetHeight || 1;
   document.getElementById('sl').querySelectorAll('.si').forEach(function(s){
-    var ex  = parseFloat(s.dataset.x||0) * (CW/fbW);
-    var ey  = parseFloat(s.dataset.y||0) * (CH/fbH);
-    var sc2 = parseFloat(s.dataset.s||1);
-    var rot = parseFloat(s.dataset.r||0) * Math.PI/180;
+    var ex=parseFloat(s.dataset.x||0)*(CW/fbW), ey=parseFloat(s.dataset.y||0)*(CH/fbH);
+    var sc2=parseFloat(s.dataset.s||1), rot=parseFloat(s.dataset.r||0)*Math.PI/180;
     ctx.save();
-    ctx.translate(ex, ey); ctx.rotate(rot); ctx.scale(sc2*(CW/fbW), sc2*(CH/fbH));
-    var sp = s.querySelector('span');
+    ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(sc2*(CW/fbW),sc2*(CH/fbH));
+    var sp=s.querySelector('span');
     if(sp){ ctx.font='34px serif'; ctx.fillText(sp.textContent,0,34); }
     else {
-      var d = s.querySelector('div');
+      var d=s.querySelector('div');
       if(d){
-        var t = d.firstChild&&d.firstChild.nodeValue ? d.firstChild.nodeValue.trim() : d.textContent.trim();
+        var t=d.firstChild&&d.firstChild.nodeValue?d.firstChild.nodeValue.trim():d.textContent.trim();
         ctx.font='bold 14px sans-serif';
-        var tw = ctx.measureText(t).width;
+        var tw=ctx.measureText(t).width;
         ctx.fillStyle='rgba(255,248,238,.94)'; ctx.fillRect(0,0,tw+24,30);
         ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.strokeRect(0,0,tw+24,30);
         ctx.fillStyle='#1a0a00'; ctx.fillText(t,12,19);
@@ -437,38 +467,32 @@ function shoot(){
     ctx.restore();
   });
 
-  // 완료 처리
   function finish(){
     shooting = false;
     document.getElementById('shutter').style.opacity = '1';
     var url;
-    try { url = cv.toDataURL('image/jpeg', 0.92); }
-    catch(e) { url = ''; }
-    shots.push(url);
-    shotIdx++;
-    if(fids.length === 4 && shotIdx < 4){
+    try { url = cv.toDataURL('image/jpeg', 0.92); } catch(e){ url=''; }
+    shots.push(url); shotIdx++;
+    if(fids.length===4 && shotIdx<4){
       clearStickers(); updateDots();
       loadFimg(fids[shotIdx]);
       document.getElementById('bTitle').textContent = FRAMES[fids[shotIdx]].label;
       flash();
     } else {
       if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; }
-      if(fids.length === 4) build4(); else showResult(url);
+      if(fids.length===4) build4(); else showResult(url);
     }
   }
 
-  // 프레임 오버레이 - fimg가 로드돼 있으면 그리고, 아니면 그냥 finish
+  // 프레임 오버레이
   var fi = document.getElementById('fimg');
   if(fi.naturalWidth > 0){
-    try { ctx.drawImage(fi, 0, 0, CW, CH); } catch(e){}
+    try{ ctx.drawImage(fi,0,0,CW,CH); }catch(e){}
     finish();
   } else {
-    fi.onload = function(){
-      try { ctx.drawImage(fi, 0, 0, CW, CH); } catch(e){}
-      finish();
-    };
+    fi.onload  = function(){ try{ctx.drawImage(fi,0,0,CW,CH);}catch(e){} finish(); };
     fi.onerror = finish;
-    if(!fi.src) finish();
+    if(!fi.src || fi.src === window.location.href) finish();
   }
 }
 
@@ -546,7 +570,7 @@ function retry(){
 
 function goLanding(){
   if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
-  shooting=false;
+  stopMirror(); shooting=false;
   document.getElementById('sBooth').style.display='none';
   document.getElementById('sResult').style.display='none';
   document.getElementById('sLanding').style.display='flex';

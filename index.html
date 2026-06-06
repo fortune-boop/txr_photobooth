@@ -3,565 +3,504 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1a0a00">
 <title>Texas Roadhouse Photo Booth</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;700&display=swap');
-:root{--red:#c0392b;--gold:#e8a020;--cream:#fff8ee;--dark:#1a0a00;}
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@700&display=swap');
+:root{--red:#c0392b;--gold:#e8a020;--dark:#1a0a00;--cream:#fff8ee;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;background:var(--dark);overflow:hidden;touch-action:manipulation}
-.btn{font-family:'Press Start 2P',monospace;cursor:pointer;border:none;outline:none;transition:transform .1s}
-.btn:active{transform:scale(.94)}
-.btn-red{background:var(--red);color:#fff;border-bottom:4px solid #8b1a1a;padding:10px 18px;font-size:9px;letter-spacing:1px}
-.btn-gold{background:var(--gold);color:var(--dark);border-bottom:4px solid #b06010;padding:10px 18px;font-size:9px;letter-spacing:1px}
-.btn-sm{padding:7px 13px;font-size:7px}
-.btn-ghost{background:transparent;color:var(--gold);border:2px solid rgba(232,160,32,.4);font-family:'Press Start 2P',monospace;font-size:7px;padding:7px 13px;cursor:pointer}
+html,body{width:100%;height:100%;background:var(--dark);overflow:hidden}
+/* 공통 */
+.px{font-family:'Press Start 2P',monospace}
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center}
 
-/* ── LANDING ── */
-#scLanding{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;background:var(--dark);z-index:10;overflow-y:auto;padding:12px 0 24px}
-.land-logo{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:clamp(13px,3.5vw,20px);text-align:center;line-height:1.5;text-shadow:3px 3px 0 var(--red);margin-bottom:4px;margin-top:6px}
-.land-sub{font-family:'Press Start 2P',monospace;color:var(--red);font-size:7px;letter-spacing:2px;margin-bottom:14px}
-.land-top{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:7px;letter-spacing:2px;opacity:.6}
-.mode-row{display:flex;gap:10px;margin-bottom:14px}
-.mode-btn{font-family:'Press Start 2P',monospace;font-size:8px;color:rgba(255,248,238,.4);background:transparent;border:2px solid rgba(232,160,32,.28);padding:8px 16px;cursor:pointer;transition:all .15s}
-.mode-btn.active,.mode-btn:hover{color:var(--gold);border-color:var(--gold);background:rgba(232,160,32,.1)}
-.section-title{font-family:'Press Start 2P',monospace;font-size:7px;color:rgba(232,160,32,.5);letter-spacing:1px;width:100%;max-width:400px;padding:0 12px;margin:10px 0 6px}
+/* ── 랜딩 ── */
+#sLanding{background:var(--dark);overflow-y:auto;padding:12px 0 24px;justify-content:flex-start}
+.l-top{color:var(--gold);font-size:7px;letter-spacing:2px;opacity:.6;margin-top:6px}
+.l-logo{color:var(--gold);font-size:clamp(14px,4vw,22px);text-align:center;line-height:1.5;text-shadow:3px 3px 0 var(--red);margin:4px 0}
+.l-sub{color:var(--red);font-size:7px;letter-spacing:2px;margin-bottom:14px}
+.mode-row{display:flex;gap:10px;margin-bottom:12px}
+.mbtn{color:rgba(255,248,238,.4);background:transparent;border:2px solid rgba(232,160,32,.28);padding:8px 16px;cursor:pointer;font-size:8px}
+.mbtn.on{color:var(--gold);border-color:var(--gold);background:rgba(232,160,32,.1)}
+.sec{color:rgba(232,160,32,.5);font-size:7px;letter-spacing:1px;width:100%;max-width:400px;padding:0 12px;margin:10px 0 6px}
+/* 1컷 그리드 */
+#g1{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:400px;padding:0 12px}
+/* 4컷 그리드 */
+#g4{display:none;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:400px;padding:0 12px}
+.fc{position:relative;border:2px solid rgba(232,160,32,.28);cursor:pointer;overflow:hidden;background:#0e0500}
+.fc.on{border-color:var(--gold)}
+.fc img{width:100%;display:block;object-fit:cover;aspect-ratio:1}
+.fc .lbl{position:absolute;bottom:0;left:0;right:0;background:rgba(26,10,0,.85);font-size:5px;color:var(--gold);padding:3px;text-align:center}
+.fc .chk{position:absolute;top:3px;right:3px;width:14px;height:14px;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:9px;color:#000}
+.fc.on .chk{display:flex}
+.sc{position:relative;border:2px solid rgba(232,160,32,.28);cursor:pointer;overflow:hidden;background:#0e0500;padding-bottom:6px}
+.sc.on{border-color:var(--gold)}
+.sc .grid4{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px}
+.sc .grid4 img{width:100%;aspect-ratio:1;object-fit:cover}
+.sc .lbl{font-size:6px;color:var(--gold);text-align:center;padding:2px}
+.sc .chk{position:absolute;top:3px;right:3px;width:14px;height:14px;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:9px;color:#000}
+.sc.on .chk{display:flex}
+.start-btn{background:var(--red);color:#fff;border:none;border-bottom:4px solid #8b1a1a;padding:12px 28px;font-size:9px;cursor:pointer;margin-top:14px;margin-bottom:8px}
 
-/* 1컷: 전체 프레임 그리드 */
-#grid1cut{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:400px;padding:0 12px}
-/* 4컷: 세트 3종 선택 */
-#grid4cut{display:none;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:400px;padding:0 12px}
-
-.frame-card{position:relative;border:2px solid rgba(232,160,32,.28);cursor:pointer;overflow:hidden;background:#0e0500;transition:border-color .15s,transform .1s;border-radius:3px}
-.frame-card:hover,.frame-card.sel{border-color:var(--gold);transform:scale(1.03)}
-.frame-card img{width:100%;display:block;object-fit:cover}
-.frame-card .fc-label{position:absolute;bottom:0;left:0;right:0;background:rgba(26,10,0,.85);font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gold);padding:3px 4px;text-align:center;line-height:1.4}
-.frame-card .fc-check{position:absolute;top:3px;right:3px;width:14px;height:14px;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:9px;color:#1a0a00;font-weight:bold}
-.frame-card.sel .fc-check{display:flex}
-
-/* 4컷 세트 카드 (더 큼) */
-.set-card{position:relative;border:2px solid rgba(232,160,32,.28);cursor:pointer;overflow:hidden;background:#0e0500;transition:border-color .15s,transform .1s;border-radius:3px;padding-bottom:8px}
-.set-card:hover,.set-card.sel{border-color:var(--gold);transform:scale(1.03)}
-.set-card .sc-icons{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:4px}
-.set-card .sc-icons img{width:100%;aspect-ratio:1;object-fit:cover}
-.set-card .sc-label{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--gold);text-align:center;padding:2px 4px;line-height:1.4}
-.set-card .sc-sub{font-family:'Noto Sans KR',sans-serif;font-size:9px;color:rgba(255,255,255,.4);text-align:center}
-.set-card .fc-check{position:absolute;top:3px;right:3px;width:14px;height:14px;background:var(--gold);display:none;align-items:center;justify-content:center;font-size:9px;color:#1a0a00;font-weight:bold}
-.set-card.sel .fc-check{display:flex}
-
-/* ── BOOTH ── */
-#scBooth{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;background:#080300;z-index:10}
-.booth-topbar{width:100%;max-width:520px;background:#110600;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:2px solid rgba(232,160,32,.14)}
-.bt-title{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold)}
-.shot-indicator{display:flex;gap:6px}
-.shot-dot{width:10px;height:10px;background:rgba(255,255,255,.1);border:1px solid rgba(232,160,32,.22)}
-.shot-dot.done{background:var(--gold)}.shot-dot.cur{background:var(--red);animation:blink .6s infinite}
+/* ── 부스 ── */
+#sBooth{background:#080300;display:none}
+.topbar{width:100%;max-width:520px;background:#110600;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(232,160,32,.15)}
+.ttl{color:var(--gold);font-size:7px}
+.dots{display:flex;gap:6px}
+.dot{width:10px;height:10px;background:rgba(255,255,255,.1);border:1px solid rgba(232,160,32,.2)}
+.dot.done{background:var(--gold)}.dot.cur{background:var(--red);animation:blink .6s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.booth-viewport{position:relative;flex:1;width:100%;max-width:520px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0}
-#frameContainer{position:relative;flex-shrink:0;overflow:hidden}
-#video{position:absolute;object-fit:cover;z-index:1;background:#000}
-#frameImg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:3;pointer-events:none}
+/* 뷰포트 */
+.vp{position:relative;flex:1;width:100%;max-width:520px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0}
+#fbox{position:relative;flex-shrink:0}
+#vid{position:absolute;object-fit:cover;z-index:1;background:#000;transform-origin:center}
+#fimg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:3;pointer-events:none}
 #canvas{display:none}
-.sticker-layer{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
-.sticker-item{position:absolute;pointer-events:auto;touch-action:none;user-select:none;transform-origin:center center}
-.snowflakes{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
-.sf{position:absolute;color:rgba(255,255,255,.5);animation:fall linear infinite}
-@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:.9}100%{transform:translateY(105%);opacity:0}}
-.no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d0500;color:var(--gold);font-size:12px;gap:10px;text-align:center;padding:2rem;z-index:20}
+.sl{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.si{position:absolute;pointer-events:auto;touch-action:none;user-select:none;transform-origin:center}
+/* 하단 컨트롤 */
+.zbar{width:100%;max-width:520px;background:#110600;padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.zbar input{flex:1;accent-color:var(--gold);cursor:pointer}
+.zbar span{color:var(--gold);font-size:7px;width:32px;text-align:right}
+.tbar{width:100%;max-width:520px;background:#0e0500;padding:5px 8px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;align-items:center}
+.tbar::-webkit-scrollbar{display:none}
+.to{font-size:20px;cursor:pointer;padding:3px 4px;line-height:1;border:1px solid transparent}
+.to:hover{background:rgba(232,160,32,.12);border-color:rgba(232,160,32,.28)}
+.tsep{width:1px;height:18px;background:rgba(232,160,32,.15);flex-shrink:0;margin:0 2px}
+.tlbl{color:rgba(232,160,32,.4);font-size:5px;flex-shrink:0;white-space:nowrap}
+.tbtn{color:var(--gold);background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.25);padding:4px 7px;cursor:pointer;font-size:5px;flex-shrink:0;white-space:nowrap}
+.cbar{width:100%;max-width:520px;background:#110600;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.cbtn{color:var(--gold);background:transparent;border:2px solid rgba(232,160,32,.3);padding:8px 12px;cursor:pointer;font-size:7px}
+.shutter{width:56px;height:56px;border-radius:50%;background:var(--cream);border:4px solid rgba(255,255,255,.28);cursor:pointer;flex-shrink:0;box-shadow:0 0 0 2px var(--gold)}
+.shutter:active{transform:scale(.9)}
 
-.zoom-bar{width:100%;max-width:520px;background:#110600;padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-top:1px solid rgba(232,160,32,.08)}
-.zoom-bar input{flex:1;accent-color:var(--gold);height:3px;cursor:pointer}
-.zoom-bar span{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);width:32px;text-align:right}
-.tool-bar{width:100%;max-width:520px;background:#0e0500;padding:5px 8px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-top:1px solid rgba(232,160,32,.08);align-items:center}
-.tool-bar::-webkit-scrollbar{display:none}
-.tool-opt{font-size:20px;cursor:pointer;padding:3px 4px;border:1px solid transparent;flex-shrink:0;line-height:1}
-.tool-opt:hover{background:rgba(232,160,32,.12);border-color:rgba(232,160,32,.3)}
-.tool-sep{width:1px;height:18px;background:rgba(232,160,32,.16);flex-shrink:0;margin:0 2px}
-.tool-label{font-family:'Press Start 2P',monospace;font-size:5px;color:rgba(232,160,32,.4);flex-shrink:0;white-space:nowrap}
-.tool-tbtn{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--gold);background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.28);padding:4px 7px;cursor:pointer;flex-shrink:0;white-space:nowrap}
-.ctrl-bar{width:100%;max-width:520px;background:#110600;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
-.ctrl-btn{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);background:transparent;border:2px solid rgba(232,160,32,.3);padding:8px 12px;cursor:pointer}
-.ctrl-btn:hover{background:rgba(232,160,32,.08)}
-.shutter-btn{width:54px;height:54px;border-radius:50%;background:var(--cream);border:4px solid rgba(255,255,255,.28);cursor:pointer;flex-shrink:0;box-shadow:0 0 0 2px var(--gold);transition:transform .1s}
-.shutter-btn:active{transform:scale(.88)}
+/* ── 결과 ── */
+#sResult{background:var(--dark);display:none}
+#rimg{width:100%;max-width:520px;flex:1;object-fit:contain;display:block;min-height:0}
+.rbar{width:100%;max-width:520px;background:#110600;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;border-top:2px solid rgba(232,160,32,.2)}
+.rbtn{flex:1;padding:10px 6px;font-size:7px;cursor:pointer;border:none;text-align:center}
+.rb-save{background:var(--red);color:#fff;border-bottom:3px solid #8b1a1a}
+.rb-insta{background:var(--gold);color:var(--dark);border-bottom:3px solid #b06010}
+.rb-retry{background:transparent;color:var(--gold);border:2px solid rgba(232,160,32,.4)}
+.rtag{color:rgba(232,160,32,.3);font-size:6px;text-align:center;padding:6px;flex-shrink:0}
 
-/* ── RESULT ── */
-#scResult{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;background:var(--dark);z-index:10}
-#resultImg{width:100%;max-width:520px;flex:1;object-fit:contain;display:block;min-height:0}
-.result-bar{width:100%;max-width:520px;background:#110600;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;border-top:2px solid rgba(232,160,32,.2)}
-.result-tag{font-family:'Press Start 2P',monospace;font-size:6px;color:rgba(232,160,32,.3);text-align:center;padding:6px;flex-shrink:0}
-
-/* ── MODALS ── */
-#bubbleModal,#igModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:60;align-items:center;justify-content:center;padding:1.5rem}
-.modal-box{background:#1a0a00;border:2px solid var(--gold);padding:1.25rem;width:100%;max-width:300px}
-.mb-title{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--gold);margin-bottom:12px}
-.modal-box input{width:100%;background:rgba(255,248,238,.06);border:1px solid rgba(232,160,32,.3);color:var(--cream);padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;margin-bottom:10px}
-.mb-row{display:flex;gap:8px}
-.ig-step{font-family:'Noto Sans KR',sans-serif;font-size:12px;color:rgba(255,220,150,.8);line-height:2.2}
-.ig-step b{color:var(--gold)}
+/* ── 모달 ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:60;align-items:center;justify-content:center;padding:1.5rem}
+.mbox{background:#1a0a00;border:2px solid var(--gold);padding:1.25rem;width:100%;max-width:300px}
+.mtitle{color:var(--gold);font-size:8px;margin-bottom:12px}
+.mbox input{width:100%;background:rgba(255,248,238,.06);border:1px solid rgba(232,160,32,.3);color:var(--cream);padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;margin-bottom:10px}
+.mrow{display:flex;gap:8px}
+.mrow .rbtn{font-size:7px;padding:8px}
 </style>
 </head>
 <body>
 
-<!-- ══ LANDING ══ -->
-<div id="scLanding">
-  <div class="land-top">★ PHOTO BOOTH ★</div>
-  <div class="land-logo">TEXAS<br>ROADHOUSE</div>
-  <div class="land-sub">CHRISTMAS 2024</div>
-
+<!-- 랜딩 -->
+<div id="sLanding" class="screen px">
+  <div class="l-top">★ PHOTO BOOTH ★</div>
+  <div class="l-logo px">TEXAS<br>ROADHOUSE</div>
+  <div class="l-sub px">CHRISTMAS 2024</div>
   <div class="mode-row">
-    <button class="mode-btn active" id="btn1cut" onclick="setMode(1)">1컷</button>
-    <button class="mode-btn" id="btn4cut" onclick="setMode(4)">4컷</button>
+    <button class="mbtn px on" id="m1" onclick="setMode(1)">1컷</button>
+    <button class="mbtn px" id="m4" onclick="setMode(4)">4컷</button>
   </div>
 
-  <!-- 1컷: 전체 프레임 선택 -->
-  <div id="grid1cut">
-    <div class="section-title" style="grid-column:1/-1">🍞 APPETIZER</div>
-    <div class="frame-card sel" id="fc_0" onclick="sel1(0)">
-      <img loading="lazy" src="frames/thumbs/appetizer_roll.jpg" alt=""><div class="fc-label">DINNER ROLL</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_1" onclick="sel1(1)">
-      <img loading="lazy" src="frames/thumbs/appetizer_peanut.jpg" alt=""><div class="fc-label">PEANUT</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_2" onclick="sel1(2)">
-      <img loading="lazy" src="frames/thumbs/appetizer_steak.jpg" alt=""><div class="fc-label">RIBEYE</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_3" onclick="sel1(3)">
-      <img loading="lazy" src="frames/thumbs/appetizer_potato.jpg" alt=""><div class="fc-label">POTATO</div><div class="fc-check">✓</div>
-    </div>
-    <div class="section-title" style="grid-column:1/-1">🤠 TX CHRISTMAS</div>
-    <div class="frame-card" id="fc_4" onclick="sel1(4)">
-      <img loading="lazy" src="frames/thumbs/xmas_rope.jpg" alt=""><div class="fc-label">TX ROPE</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_5" onclick="sel1(5)">
-      <img loading="lazy" src="frames/thumbs/xmas_merry.jpg" alt=""><div class="fc-label">MERRY TX</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_6" onclick="sel1(6)">
-      <img loading="lazy" src="frames/thumbs/xmas_longhorn.jpg" alt=""><div class="fc-label">LONGHORN</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_7" onclick="sel1(7)">
-      <img loading="lazy" src="frames/thumbs/xmas_truck.jpg" alt=""><div class="fc-label">TX TRUCK</div><div class="fc-check">✓</div>
-    </div>
-    <div class="section-title" style="grid-column:1/-1">🦔 ANDY</div>
-    <div class="frame-card" id="fc_8" onclick="sel1(8)">
-      <img loading="lazy" src="frames/thumbs/andy_santa.jpg" alt=""><div class="fc-label">ANDY SANTA</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_9" onclick="sel1(9)">
-      <img loading="lazy" src="frames/thumbs/andy_texas.jpg" alt=""><div class="fc-label">ANDY TEXAS</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_10" onclick="sel1(10)">
-      <img loading="lazy" src="frames/thumbs/andy_star.jpg" alt=""><div class="fc-label">ANDY STAR</div><div class="fc-check">✓</div>
-    </div>
-    <div class="frame-card" id="fc_11" onclick="sel1(11)">
-      <img loading="lazy" src="frames/thumbs/andy_cozy.jpg" alt=""><div class="fc-label">ANDY COZY</div><div class="fc-check">✓</div>
-    </div>
+  <!-- 1컷 -->
+  <div class="sec px">🍞 APPETIZER</div>
+  <div id="g1">
+    <div class="fc on" id="f0" onclick="pick1(0)"><img src="frames/thumbs/appetizer_roll.jpg" loading="lazy"><div class="lbl px">DINNER ROLL</div><div class="chk">✓</div></div>
+    <div class="fc" id="f1" onclick="pick1(1)"><img src="frames/thumbs/appetizer_peanut.jpg" loading="lazy"><div class="lbl px">PEANUT</div><div class="chk">✓</div></div>
+    <div class="fc" id="f2" onclick="pick1(2)"><img src="frames/thumbs/appetizer_steak.jpg" loading="lazy"><div class="lbl px">RIBEYE</div><div class="chk">✓</div></div>
+    <div class="fc" id="f3" onclick="pick1(3)"><img src="frames/thumbs/appetizer_potato.jpg" loading="lazy"><div class="lbl px">POTATO</div><div class="chk">✓</div></div>
+    <div class="sec px" style="grid-column:1/-1;margin:6px 0">🤠 TX CHRISTMAS</div>
+    <div class="fc" id="f4" onclick="pick1(4)"><img src="frames/thumbs/xmas_rope.jpg" loading="lazy"><div class="lbl px">TX ROPE</div><div class="chk">✓</div></div>
+    <div class="fc" id="f5" onclick="pick1(5)"><img src="frames/thumbs/xmas_merry.jpg" loading="lazy"><div class="lbl px">MERRY TX</div><div class="chk">✓</div></div>
+    <div class="fc" id="f6" onclick="pick1(6)"><img src="frames/thumbs/xmas_longhorn.jpg" loading="lazy"><div class="lbl px">LONGHORN</div><div class="chk">✓</div></div>
+    <div class="fc" id="f7" onclick="pick1(7)"><img src="frames/thumbs/xmas_truck.jpg" loading="lazy"><div class="lbl px">TX TRUCK</div><div class="chk">✓</div></div>
+    <div class="sec px" style="grid-column:1/-1;margin:6px 0">🦔 ANDY</div>
+    <div class="fc" id="f8" onclick="pick1(8)"><img src="frames/thumbs/andy_santa.jpg" loading="lazy"><div class="lbl px">ANDY SANTA</div><div class="chk">✓</div></div>
+    <div class="fc" id="f9" onclick="pick1(9)"><img src="frames/thumbs/andy_texas.jpg" loading="lazy"><div class="lbl px">ANDY TEXAS</div><div class="chk">✓</div></div>
+    <div class="fc" id="f10" onclick="pick1(10)"><img src="frames/thumbs/andy_star.jpg" loading="lazy"><div class="lbl px">ANDY STAR</div><div class="chk">✓</div></div>
+    <div class="fc" id="f11" onclick="pick1(11)"><img src="frames/thumbs/andy_cozy.jpg" loading="lazy"><div class="lbl px">ANDY COZY</div><div class="chk">✓</div></div>
   </div>
 
-  <!-- 4컷: 세트 3종 선택 -->
-  <div id="grid4cut">
-    <div class="set-card sel" id="sc_0" onclick="sel4(0)">
-      <div class="sc-icons">
-        <img loading="lazy" src="frames/thumbs/appetizer_roll.jpg" alt=""><img loading="lazy" src="frames/thumbs/appetizer_peanut.jpg" alt="">
-        <img loading="lazy" src="frames/thumbs/appetizer_steak.jpg" alt=""><img loading="lazy" src="frames/thumbs/appetizer_potato.jpg" alt="">
+  <!-- 4컷 -->
+  <div id="g4">
+    <div class="sc on" id="s0" onclick="pick4(0)">
+      <div class="grid4">
+        <img src="frames/thumbs/appetizer_roll.jpg"><img src="frames/thumbs/appetizer_peanut.jpg">
+        <img src="frames/thumbs/appetizer_steak.jpg"><img src="frames/thumbs/appetizer_potato.jpg">
       </div>
-      <div class="sc-label">APPETIZER</div>
-      <div class="sc-sub">에피타이저 4컷</div>
-      <div class="fc-check">✓</div>
+      <div class="lbl px">APPETIZER</div><div class="chk">✓</div>
     </div>
-    <div class="set-card" id="sc_1" onclick="sel4(1)">
-      <div class="sc-icons">
-        <img loading="lazy" src="frames/thumbs/xmas_rope.jpg" alt=""><img loading="lazy" src="frames/thumbs/xmas_merry.jpg" alt="">
-        <img loading="lazy" src="frames/thumbs/xmas_longhorn.jpg" alt=""><img loading="lazy" src="frames/thumbs/xmas_truck.jpg" alt="">
+    <div class="sc" id="s1" onclick="pick4(1)">
+      <div class="grid4">
+        <img src="frames/thumbs/xmas_rope.jpg"><img src="frames/thumbs/xmas_merry.jpg">
+        <img src="frames/thumbs/xmas_longhorn.jpg"><img src="frames/thumbs/xmas_truck.jpg">
       </div>
-      <div class="sc-label">TX XMAS</div>
-      <div class="sc-sub">텍사스 크리스마스</div>
-      <div class="fc-check">✓</div>
+      <div class="lbl px">TX XMAS</div><div class="chk">✓</div>
     </div>
-    <div class="set-card" id="sc_2" onclick="sel4(2)">
-      <div class="sc-icons">
-        <img loading="lazy" src="frames/thumbs/andy_santa.jpg" alt=""><img loading="lazy" src="frames/thumbs/andy_texas.jpg" alt="">
-        <img loading="lazy" src="frames/thumbs/andy_star.jpg" alt=""><img loading="lazy" src="frames/thumbs/andy_cozy.jpg" alt="">
+    <div class="sc" id="s2" onclick="pick4(2)">
+      <div class="grid4">
+        <img src="frames/thumbs/andy_santa.jpg"><img src="frames/thumbs/andy_texas.jpg">
+        <img src="frames/thumbs/andy_star.jpg"><img src="frames/thumbs/andy_cozy.jpg">
       </div>
-      <div class="sc-label">ANDY</div>
-      <div class="sc-sub">앤디 4컷</div>
-      <div class="fc-check">✓</div>
+      <div class="lbl px">ANDY</div><div class="chk">✓</div>
     </div>
   </div>
 
-  <button class="btn btn-red" style="margin-top:16px;margin-bottom:8px" onclick="startBooth()">START ▶</button>
+  <button class="start-btn px" onclick="startBooth()">START ▶</button>
 </div>
 
-<!-- ══ BOOTH ══ -->
-<div id="scBooth">
-  <div class="booth-topbar">
-    <span class="bt-title" id="boothTitle">PHOTO BOOTH</span>
-    <div class="shot-indicator" id="shotIndicator"></div>
+<!-- 부스 -->
+<div id="sBooth" class="screen px">
+  <div class="topbar">
+    <span class="ttl px" id="bTitle">PHOTO BOOTH</span>
+    <div class="dots" id="bDots"></div>
   </div>
-  <div class="booth-viewport" id="boothViewport">
-    <div id="frameContainer">
-      <video id="video" autoplay playsinline muted></video>
-      <div class="snowflakes" id="snowflakes"></div>
-      <div class="sticker-layer" id="stickerLayer"></div>
-      <img id="frameImg" alt="" src="" crossorigin="anonymous">
-      <div class="no-cam" id="noCam" style="display:none">
-        <div style="font-size:28px">📷</div>
-        <div style="font-family:'Press Start 2P',monospace;font-size:8px">카메라 없음</div>
-        <div style="font-family:'Noto Sans KR',sans-serif;font-size:11px;opacity:.5;margin-top:6px">권한을 허용해주세요</div>
-      </div>
+  <div class="vp" id="vp">
+    <div id="fbox">
+      <video id="vid" autoplay playsinline muted></video>
+      <div class="sl" id="sl"></div>
+      <img id="fimg" src="" alt="" crossorigin="anonymous">
     </div>
   </div>
-  <div class="zoom-bar">
-    <span style="font-size:10px">🔍</span>
-    <input id="zoomSlider" type="range" min="0.5" max="4" step="0.1" value="1" oninput="applyZoom(parseFloat(this.value))">
-    <span id="zoomLabel">1.0x</span>
+  <div class="zbar">
+    <span style="font-size:11px">🔍</span>
+    <input type="range" min="0.5" max="4" step="0.1" value="1" oninput="setZoom(parseFloat(this.value))">
+    <span id="zLabel" class="px">1.0x</span>
   </div>
-  <div class="tool-bar">
-    <span class="tool-label">스티커</span>
-    <span class="tool-opt" onclick="addSticker('🤠')">🤠</span>
-    <span class="tool-opt" onclick="addSticker('🎄')">🎄</span>
-    <span class="tool-opt" onclick="addSticker('⭐')">⭐</span>
-    <span class="tool-opt" onclick="addSticker('❄️')">❄️</span>
-    <span class="tool-opt" onclick="addSticker('🎅')">🎅</span>
-    <span class="tool-opt" onclick="addSticker('🥩')">🥩</span>
-    <span class="tool-opt" onclick="addSticker('🍞')">🍞</span>
-    <span class="tool-opt" onclick="addSticker('🥔')">🥔</span>
-    <span class="tool-opt" onclick="addSticker('🥜')">🥜</span>
-    <div class="tool-sep"></div>
-    <span class="tool-label">문구</span>
-    <button class="tool-tbtn" onclick="showBubbleModal()">💬 말풍선</button>
-    <div class="tool-sep"></div>
-    <button class="tool-tbtn" onclick="clearAll()" style="color:rgba(255,100,100,.6)">🗑</button>
+  <div class="tbar">
+    <span class="tlbl px">스티커</span>
+    <span class="to" onclick="addSticker('🤠')">🤠</span>
+    <span class="to" onclick="addSticker('🎄')">🎄</span>
+    <span class="to" onclick="addSticker('⭐')">⭐</span>
+    <span class="to" onclick="addSticker('❄️')">❄️</span>
+    <span class="to" onclick="addSticker('🎅')">🎅</span>
+    <span class="to" onclick="addSticker('🥩')">🥩</span>
+    <span class="to" onclick="addSticker('🍞')">🍞</span>
+    <span class="to" onclick="addSticker('🥔')">🥔</span>
+    <span class="to" onclick="addSticker('🥜')">🥜</span>
+    <div class="tsep"></div>
+    <span class="tlbl px">문구</span>
+    <button class="tbtn px" onclick="openBubble()">💬 말풍선</button>
+    <div class="tsep"></div>
+    <button class="tbtn px" onclick="clearStickers()" style="color:rgba(255,80,80,.7)">🗑</button>
   </div>
-  <div class="ctrl-bar">
-    <button class="ctrl-btn" onclick="flipCamera()">🔄</button>
-    <button class="shutter-btn" id="shutterBtn" onclick="takeShot()"></button>
-    <button class="ctrl-btn" onclick="goLanding()">✕</button>
+  <div class="cbar">
+    <button class="cbtn px" onclick="flipCam()">🔄</button>
+    <button class="shutter" id="shutter" onclick="shoot()"></button>
+    <button class="cbtn px" onclick="goLanding()">✕</button>
   </div>
 </div>
 
-<!-- ══ RESULT ══ -->
-<div id="scResult">
-  <img id="resultImg" alt="촬영 결과">
-  <div class="result-bar">
-    <button class="btn btn-red btn-sm" style="flex:1" onclick="downloadPhoto()">💾 저장</button>
-    <button class="btn btn-gold btn-sm" style="flex:1" onclick="openInstagram()">📸 인스타 공유</button>
-    <button class="btn-ghost btn-sm" style="flex:1" onclick="retake()">↩ 다시</button>
+<!-- 결과 -->
+<div id="sResult" class="screen px">
+  <img id="rimg" alt="">
+  <div class="rbar">
+    <button class="rbtn rb-save px" onclick="dlPhoto()">💾 저장</button>
+    <button class="rbtn rb-insta px" onclick="toInsta()">📸 인스타</button>
+    <button class="rbtn rb-retry px" onclick="retry()">↩ 다시</button>
   </div>
-  <div class="result-tag">#TxRH크리스마스 #텍사스로드하우스</div>
+  <div class="rtag px">#TxRH크리스마스 #텍사스로드하우스</div>
 </div>
 
-<!-- 말풍선 -->
-<div id="bubbleModal">
-  <div class="modal-box">
-    <div class="mb-title">💬 말풍선 추가</div>
-    <input id="bubbleInput" type="text" maxlength="20" placeholder="텍스트 입력 (최대 20자)">
-    <div class="mb-row">
-      <button class="btn btn-gold btn-sm" style="flex:1" onclick="addBubble()">추가</button>
-      <button class="btn-ghost btn-sm" style="flex:1" onclick="closeBubbleModal()">취소</button>
+<!-- 말풍선 모달 -->
+<div id="mBubble" class="modal">
+  <div class="mbox">
+    <div class="mtitle px">💬 말풍선 추가</div>
+    <input id="bInput" type="text" maxlength="20" placeholder="텍스트 입력 (최대 20자)">
+    <div class="mrow">
+      <button class="rbtn rb-insta px" onclick="addBubble()">추가</button>
+      <button class="rbtn rb-retry px" onclick="closeBubble()">취소</button>
     </div>
   </div>
 </div>
 
-<!-- 인스타 -->
-<div id="igModal">
-  <div class="modal-box">
-    <div class="mb-title">📸 INSTAGRAM</div>
-    <div class="ig-step">1. <b>저장하기</b>로 사진 저장<br>2. 인스타그램 앱 열기<br>3. 스토리/피드에 업로드<br>4. <b>#TxRH크리스마스</b> 태그</div>
-    <div class="mb-row" style="margin-top:12px">
-      <button class="btn btn-red btn-sm" style="flex:1" onclick="downloadPhoto();closeIgModal()">💾 저장</button>
-      <button class="btn-ghost btn-sm" style="flex:1" onclick="closeIgModal()">닫기</button>
+<!-- 인스타 모달 -->
+<div id="mInsta" class="modal">
+  <div class="mbox">
+    <div class="mtitle px">📸 INSTAGRAM</div>
+    <div style="font-family:'Noto Sans KR';font-size:12px;color:rgba(255,220,150,.8);line-height:2.2">
+      1. <b style="color:var(--gold)">저장</b>으로 사진 저장<br>
+      2. 인스타그램 앱 열기<br>
+      3. 스토리/피드에 업로드<br>
+      4. <b style="color:var(--gold)">#TxRH크리스마스</b> 태그
+    </div>
+    <div class="mrow" style="margin-top:12px">
+      <button class="rbtn rb-save px" onclick="dlPhoto();closeInsta()">💾 저장</button>
+      <button class="rbtn rb-retry px" onclick="closeInsta()">닫기</button>
     </div>
   </div>
 </div>
 
 <script>
 // ── 프레임 데이터 ──
-const FRAMES = [
-  {id:0,  src:'frames/appetizer_roll.png',    label:'DINNER ROLL',   aspect:1.0,    hx:0.2105,hy:0.2137,hw:0.6172,hh:0.5853},
-  {id:1,  src:'frames/appetizer_peanut.png',  label:'PEANUT',        aspect:1.0,    hx:0.2313,hy:0.1978,hw:0.5758,hh:0.5550},
-  {id:2,  src:'frames/appetizer_steak.png',   label:'RIBEYE',        aspect:1.0,    hx:0.1738,hy:0.1994,hw:0.5853,hh:0.4833},
-  {id:3,  src:'frames/appetizer_potato.png',  label:'POTATO',        aspect:1.0,    hx:0.1722,hy:0.2632,hw:0.6077,hh:0.4833},
-  {id:4,  src:'frames/xmas_rope.png',         label:'TX ROPE',       aspect:1.0,    hx:0.2233,hy:0.2632,hw:0.6316,hh:0.5805},
-  {id:5,  src:'frames/xmas_merry.png',        label:'MERRY TX',      aspect:1.3887, hx:0.2366,hy:0.3445,hw:0.5229,hh:0.5212},
-  {id:6,  src:'frames/xmas_longhorn.png',     label:'LONGHORN',      aspect:0.8324, hx:0.2451,hy:0.2041,hw:0.5065,hh:0.6081},
-  {id:7,  src:'frames/xmas_truck.png',        label:'TX TRUCK',      aspect:1.4943, hx:0.1141,hy:0.1609,hw:0.7500,hh:0.6686},
-  {id:8,  src:'frames/andy_santa.png',        label:'ANDY SANTA',    aspect:1.0,    hx:0.3684,hy:0.1571,hw:0.5247,hh:0.6938},
-  {id:9,  src:'frames/andy_texas.png',        label:'ANDY TEXAS',    aspect:0.9661, hx:0.2360,hy:0.2219,hw:0.6396,hh:0.6487},
-  {id:10, src:'frames/andy_star.png',         label:'ANDY STAR',     aspect:0.9661, hx:0.1515,hy:0.1048,hw:0.7049,hh:0.6641},
-  {id:11, src:'frames/andy_cozy.png',         label:'ANDY COZY',     aspect:1.1901, hx:0.1611,hy:0.1769,hw:0.6944,hh:0.6099},
+var FRAMES = [
+  {id:0,  src:'frames/appetizer_roll.png',   label:'DINNER ROLL',  aspect:1.0,    hx:0.2105,hy:0.2137,hw:0.6172,hh:0.5853},
+  {id:1,  src:'frames/appetizer_peanut.png', label:'PEANUT',       aspect:1.0,    hx:0.2313,hy:0.1978,hw:0.5758,hh:0.5550},
+  {id:2,  src:'frames/appetizer_steak.png',  label:'RIBEYE',       aspect:1.0,    hx:0.1738,hy:0.1994,hw:0.5853,hh:0.4833},
+  {id:3,  src:'frames/appetizer_potato.png', label:'POTATO',       aspect:1.0,    hx:0.1722,hy:0.2632,hw:0.6077,hh:0.4833},
+  {id:4,  src:'frames/xmas_rope.png',        label:'TX ROPE',      aspect:1.0,    hx:0.2233,hy:0.2632,hw:0.6316,hh:0.5805},
+  {id:5,  src:'frames/xmas_merry.png',       label:'MERRY TX',     aspect:1.3887, hx:0.2366,hy:0.3445,hw:0.5229,hh:0.5212},
+  {id:6,  src:'frames/xmas_longhorn.png',    label:'LONGHORN',     aspect:0.8324, hx:0.2451,hy:0.2041,hw:0.5065,hh:0.6081},
+  {id:7,  src:'frames/xmas_truck.png',       label:'TX TRUCK',     aspect:1.4943, hx:0.1141,hy:0.1609,hw:0.7500,hh:0.6686},
+  {id:8,  src:'frames/andy_santa.png',       label:'ANDY SANTA',   aspect:1.0,    hx:0.3684,hy:0.1571,hw:0.5247,hh:0.6938},
+  {id:9,  src:'frames/andy_texas.png',       label:'ANDY TEXAS',   aspect:0.9661, hx:0.2360,hy:0.2219,hw:0.6396,hh:0.6487},
+  {id:10, src:'frames/andy_star.png',        label:'ANDY STAR',    aspect:0.9661, hx:0.1515,hy:0.1048,hw:0.7049,hh:0.6641},
+  {id:11, src:'frames/andy_cozy.png',        label:'ANDY COZY',    aspect:1.1901, hx:0.1611,hy:0.1769,hw:0.6944,hh:0.6099}
 ];
-
-// 4컷 세트 정의
-const SETS = [
-  {label:'APPETIZER', ids:[0,1,2,3]},
-  {label:'TX XMAS',   ids:[4,5,6,7]},
-  {label:'ANDY',      ids:[8,9,10,11]},
+var SETS = [
+  [0,1,2,3],
+  [4,5,6,7],
+  [8,9,10,11]
 ];
 
 // ── 상태 ──
-let stream=null, facing='user';
-let currentZoom=1, pinchStartDist=0, pinchStartZoom=1;
-let selectedMode=1, selected1=0, selected4=0;
-let shotCount=0, shots=[], totalShots=1;
-let currentFrameIds=[];
-let gestureTarget=null;
-let isShooting=false; // 중복 촬영 방지
+var mode=1, sel1=0, sel4=0;
+var stream=null, facing='user', zoom=1;
+var shooting=false;
+var fids=[], shotIdx=0, shots=[];
+var gTarget=null;
+var cache={};
 
-// ── 랜딩 UI ──
+// ── 랜딩 ──
 function setMode(m){
-  selectedMode=m;
-  document.getElementById('btn1cut').classList.toggle('active',m===1);
-  document.getElementById('btn4cut').classList.toggle('active',m===4);
-  document.getElementById('grid1cut').style.display = m===1 ? 'grid' : 'none';
-  document.getElementById('grid4cut').style.display = m===4 ? 'grid' : 'none';
+  mode=m;
+  document.getElementById('m1').classList.toggle('on',m===1);
+  document.getElementById('m4').classList.toggle('on',m===4);
+  document.getElementById('g1').style.display=m===1?'grid':'none';
+  document.getElementById('g4').style.display=m===4?'grid':'none';
 }
-function sel1(id){
-  selected1=id;
-  document.querySelectorAll('#grid1cut .frame-card').forEach(c=>c.classList.remove('sel'));
-  const el=document.getElementById('fc_'+id); if(el) el.classList.add('sel');
+function pick1(id){
+  sel1=id;
+  document.querySelectorAll('#g1 .fc').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('f'+id).classList.add('on');
 }
-function sel4(id){
-  selected4=id;
-  document.querySelectorAll('#grid4cut .set-card').forEach(c=>c.classList.remove('sel'));
-  const el=document.getElementById('sc_'+id); if(el) el.classList.add('sel');
+function pick4(id){
+  sel4=id;
+  document.querySelectorAll('#g4 .sc').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('s'+id).classList.add('on');
 }
 
 // ── 부스 시작 ──
-async function startBooth(){
-  if(selectedMode===1){
-    totalShots=1;
-    currentFrameIds=[selected1];
-  } else {
-    totalShots=4;
-    currentFrameIds=[...SETS[selected4].ids];
-  }
-  shotCount=0; shots=[];
-  document.getElementById('boothTitle').textContent = FRAMES[currentFrameIds[0]].label;
-  updateIndicator();
-  // 필요한 프레임만 미리 로드
-  preloadFrameIds(currentFrameIds);
-  document.getElementById('scLanding').style.display='none';
-  document.getElementById('scBooth').style.display='flex';
-  makeSnow();
-  await startCamera();
-  loadFrameImg(currentFrameIds[0]);
+function startBooth(){
+  fids = mode===1 ? [sel1] : SETS[sel4].slice();
+  shotIdx=0; shots=[];
+  document.getElementById('sLanding').style.display='none';
+  document.getElementById('sBooth').style.display='flex';
+  document.getElementById('bTitle').textContent=FRAMES[fids[0]].label;
+  updateDots();
+  loadFimg(fids[0]);
+  startCam();
 }
 
-function loadFrameImg(fid){
-  const f=FRAMES[fid];
-  const img=document.getElementById('frameImg');
-  img.crossOrigin='anonymous';
-  img.onload=function(){ layoutFrame(fid); };
-  img.onerror=function(){ layoutFrame(fid); };
-  // src 변경 전에 crossOrigin 설정 필수
-  if(img.src !== location.origin+'/'+f.src && img.src !== f.src){
-    img.src = f.src;
-  } else if(img.complete && img.naturalWidth>0){
-    layoutFrame(fid);
-  }
-}
-
-function updateIndicator(){
-  const el=document.getElementById('shotIndicator');
-  if(totalShots===1){el.innerHTML='';return;}
-  el.innerHTML=Array.from({length:totalShots},(_,i)=>{
-    let c='shot-dot';
-    if(i<shotCount) c+=' done';
-    else if(i===shotCount) c+=' cur';
+function updateDots(){
+  var el=document.getElementById('bDots');
+  if(fids.length===1){el.innerHTML='';return;}
+  el.innerHTML=fids.map(function(_,i){
+    var c='dot'+(i<shotIdx?' done':i===shotIdx?' cur':'');
     return '<div class="'+c+'"></div>';
   }).join('');
 }
 
-// ── 레이아웃: 프레임 비율에 맞게 컨테이너 & 비디오 배치 ──
-function layoutFrame(fid){
-  const f=FRAMES[fid];
-  const vp=document.getElementById('boothViewport');
-  const vpW=vp.offsetWidth, vpH=vp.offsetHeight;
-  let cW,cH;
-  if(vpW/vpH > f.aspect){ cH=vpH; cW=cH*f.aspect; }
-  else { cW=vpW; cH=cW/f.aspect; }
-  const fc=document.getElementById('frameContainer');
-  fc.style.width=cW+'px'; fc.style.height=cH+'px';
-  const v=document.getElementById('video');
-  v.style.left=(f.hx*cW)+'px';
-  v.style.top=(f.hy*cH)+'px';
-  v.style.width=(f.hw*cW)+'px';
-  v.style.height=(f.hh*cH)+'px';
-  applyZoom(currentZoom);
-}
-
-// ── 줌 ──
-function applyZoom(z){
-  currentZoom=Math.max(0.5,Math.min(4,z));
-  const v=document.getElementById('video');
-  v.style.transform=(facing==='user'?'scaleX(-1)':'scaleX(1)')+' scale('+currentZoom+')';
-  const sl=document.getElementById('zoomSlider'); if(sl) sl.value=currentZoom;
-  const lb=document.getElementById('zoomLabel'); if(lb) lb.textContent=currentZoom.toFixed(1)+'x';
-}
-
 // ── 카메라 ──
-async function startCamera(){
-  try{
-    if(stream) stream.getTracks().forEach(t=>t.stop());
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:facing,width:{ideal:1920},height:{ideal:1920}},audio:false
-    });
-    const v=document.getElementById('video');
-    v.srcObject=stream;
-    applyZoom(1);
-    document.getElementById('noCam').style.display='none';
-    v.style.display='block';
-  }catch(e){
-    document.getElementById('noCam').style.display='flex';
-    document.getElementById('video').style.display='none';
-  }
+function startCam(){
+  if(stream) stream.getTracks().forEach(function(t){t.stop();});
+  navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false})
+  .then(function(s){
+    stream=s;
+    var v=document.getElementById('vid');
+    v.srcObject=s;
+    applyLayout(fids[shotIdx]);
+  })
+  .catch(function(e){ alert('카메라 오류: '+e.message); });
 }
-async function flipCamera(){ facing=facing==='user'?'environment':'user'; await startCamera(); }
+function flipCam(){
+  facing=facing==='user'?'environment':'user';
+  startCam();
+}
+
+// ── 레이아웃 ──
+function applyLayout(fid){
+  var f=FRAMES[fid];
+  var vp=document.getElementById('vp');
+  var vpW=vp.offsetWidth, vpH=vp.offsetHeight;
+  var cW,cH;
+  if(vpW/vpH>f.aspect){cH=vpH;cW=cH*f.aspect;}
+  else{cW=vpW;cH=cW/f.aspect;}
+  var fb=document.getElementById('fbox');
+  fb.style.width=cW+'px'; fb.style.height=cH+'px';
+  var v=document.getElementById('vid');
+  v.style.left=(f.hx*cW)+'px'; v.style.top=(f.hy*cH)+'px';
+  v.style.width=(f.hw*cW)+'px'; v.style.height=(f.hh*cH)+'px';
+  setZoom(zoom);
+}
+window.addEventListener('resize',function(){
+  if(fids.length) applyLayout(fids[shotIdx]);
+});
+
+function setZoom(z){
+  zoom=Math.max(0.5,Math.min(4,z));
+  var v=document.getElementById('vid');
+  v.style.transform=(facing==='user'?'scaleX(-1)':'scaleX(1)')+' scale('+zoom+')';
+  document.getElementById('zLabel').textContent=zoom.toFixed(1)+'x';
+}
 
 // 핀치 줌
-const vp=document.getElementById('boothViewport');
-vp.addEventListener('touchstart',e=>{
-  if(e.touches.length===2&&!gestureTarget){
-    pinchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    pinchStartZoom=currentZoom;
+document.getElementById('vp').addEventListener('touchstart',function(e){
+  if(e.touches.length===2&&!gTarget){
+    var dx=e.touches[0].clientX-e.touches[1].clientX;
+    var dy=e.touches[0].clientY-e.touches[1].clientY;
+    vp._pd=Math.hypot(dx,dy); vp._pz=zoom;
   }
 },{passive:true});
-vp.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&!gestureTarget){
+document.getElementById('vp').addEventListener('touchmove',function(e){
+  if(e.touches.length===2&&!gTarget){
     e.preventDefault();
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    applyZoom(pinchStartZoom*(d/pinchStartDist));
+    var dx=e.touches[0].clientX-e.touches[1].clientX;
+    var dy=e.touches[0].clientY-e.touches[1].clientY;
+    setZoom(vp._pz*(Math.hypot(dx,dy)/vp._pd));
   }
 },{passive:false});
-window.addEventListener('resize',()=>{ if(currentFrameIds.length) layoutFrame(currentFrameIds[Math.min(shotCount,currentFrameIds.length-1)]); });
+
+// ── 프레임 이미지 ──
+function loadFimg(fid){
+  var f=FRAMES[fid];
+  var img=document.getElementById('fimg');
+  img.src=f.src;
+  img.onload=function(){applyLayout(fid);};
+  img.onerror=function(){applyLayout(fid);};
+}
 
 // ── 촬영 ──
-function takeShot(){
-  if(isShooting) return;
-  isShooting = true;
-  document.getElementById('shutterBtn').style.opacity = '0.4';
+function shoot(){
+  if(shooting) return;
+  shooting=true;
+  document.getElementById('shutter').style.opacity='0.5';
 
-  var v   = document.getElementById('video');
-  var fc  = document.getElementById('frameContainer');
-  var fid = currentFrameIds[Math.min(shotCount, currentFrameIds.length-1)];
-  var f   = FRAMES[fid];
+  var fid=fids[shotIdx];
+  var f=FRAMES[fid];
+  var v=document.getElementById('vid');
+  var fb=document.getElementById('fbox');
 
-  // 캔버스 크기: 프레임 비율 기준 2000px
-  var LONG = 2000;
-  var CW = f.aspect >= 1 ? LONG : Math.round(LONG * f.aspect);
-  var CH = f.aspect >= 1 ? Math.round(LONG / f.aspect) : LONG;
-  var cv  = document.getElementById('canvas');
-  cv.width = CW; cv.height = CH;
-  var ctx = cv.getContext('2d');
-  ctx.fillStyle = '#1a0a00';
-  ctx.fillRect(0, 0, CW, CH);
+  var LONG=2000;
+  var CW=f.aspect>=1?LONG:Math.round(LONG*f.aspect);
+  var CH=f.aspect>=1?Math.round(LONG/f.aspect):LONG;
 
-  // ① 구멍에 카메라 영상 (vW가 0이면 hW/hH를 fallback으로 사용)
+  var cv=document.getElementById('canvas');
+  cv.width=CW; cv.height=CH;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#1a0a00';
+  ctx.fillRect(0,0,CW,CH);
+
+  // 카메라
   var hX=f.hx*CW, hY=f.hy*CH, hW=f.hw*CW, hH=f.hh*CH;
-  var vw = v.videoWidth  > 0 ? v.videoWidth  : hW;
-  var vh = v.videoHeight > 0 ? v.videoHeight : hH;
-  var scV = Math.max(hW/vw, hH/vh) * currentZoom;
-  var dw=vw*scV, dh=vh*scV;
+  var vw=v.videoWidth>0?v.videoWidth:640;
+  var vh=v.videoHeight>0?v.videoHeight:640;
+  var sc=Math.max(hW/vw,hH/vh)*zoom;
   ctx.save();
-  ctx.beginPath(); ctx.rect(hX, hY, hW, hH); ctx.clip();
-  if(facing==='user'){ ctx.translate(hX*2+hW, 0); ctx.scale(-1,1); }
-  ctx.drawImage(v, hX+(hW-dw)/2, hY+(hH-dh)/2, dw, dh);
+  ctx.beginPath(); ctx.rect(hX,hY,hW,hH); ctx.clip();
+  if(facing==='user'){ctx.translate(hX*2+hW,0);ctx.scale(-1,1);}
+  ctx.drawImage(v,hX+(hW-vw*sc)/2,hY+(hH-vh*sc)/2,vw*sc,vh*sc);
   ctx.restore();
 
-  // ② 스티커
-  var sxR=CW/(fc.offsetWidth||1), syR=CH/(fc.offsetHeight||1);
-  document.getElementById('stickerLayer').querySelectorAll('.sticker-item').forEach(function(s){
-    var ex=parseFloat(s.dataset.x)*sxR, ey=parseFloat(s.dataset.y)*syR;
-    var sc2=parseFloat(s.dataset.scale)||1;
-    var rot=(parseFloat(s.dataset.rot)||0)*Math.PI/180;
+  // 스티커
+  var fbW=fb.offsetWidth||1, fbH=fb.offsetHeight||1;
+  document.getElementById('sl').querySelectorAll('.si').forEach(function(s){
+    var ex=parseFloat(s.dataset.x||0)*(CW/fbW);
+    var ey=parseFloat(s.dataset.y||0)*(CH/fbH);
+    var sc2=parseFloat(s.dataset.s||1);
+    var rot=(parseFloat(s.dataset.r||0))*Math.PI/180;
     ctx.save();
-    ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(sc2*sxR, sc2*syR);
-    var span=s.querySelector('span');
-    if(span){ ctx.font='34px serif'; ctx.fillText(span.textContent,0,34); }
-    else {
-      var inner=s.querySelector('div');
-      if(inner){
-        var txt=(inner.firstChild&&inner.firstChild.nodeValue)
-                ? inner.firstChild.nodeValue.trim()
-                : inner.textContent.trim().split('\n')[0].trim();
-        var fs=14;
-        ctx.font='bold '+fs+'px sans-serif';
-        var tw=ctx.measureText(txt).width;
-        ctx.fillStyle='rgba(255,248,238,0.94)'; ctx.fillRect(0,0,tw+24,30);
-        ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5; ctx.strokeRect(0,0,tw+24,30);
-        ctx.fillStyle='#1a0a00'; ctx.fillText(txt,12,fs+5);
+    ctx.translate(ex,ey); ctx.rotate(rot); ctx.scale(sc2*(CW/fbW),sc2*(CH/fbH));
+    var sp=s.querySelector('span');
+    if(sp){ctx.font='34px serif';ctx.fillText(sp.textContent,0,34);}
+    else{
+      var d=s.querySelector('div');
+      if(d){
+        var t=d.childNodes[0]&&d.childNodes[0].nodeValue?d.childNodes[0].nodeValue.trim():d.textContent.trim();
+        ctx.font='bold 14px sans-serif';
+        var tw=ctx.measureText(t).width;
+        ctx.fillStyle='rgba(255,248,238,.94)';ctx.fillRect(0,0,tw+24,30);
+        ctx.strokeStyle='#c0392b';ctx.lineWidth=2.5;ctx.strokeRect(0,0,tw+24,30);
+        ctx.fillStyle='#1a0a00';ctx.fillText(t,12,19);
         ctx.fillStyle='#c0392b';
-        ctx.beginPath(); ctx.moveTo(16,30); ctx.lineTo(8,41); ctx.lineTo(32,30); ctx.fill();
+        ctx.beginPath();ctx.moveTo(16,30);ctx.lineTo(8,41);ctx.lineTo(32,30);ctx.fill();
       }
     }
     ctx.restore();
   });
 
-  // ③ 완료
-  function done(){
-    isShooting = false;
-    document.getElementById('shutterBtn').style.opacity = '1';
-    var dataUrl;
-    try { dataUrl = cv.toDataURL('image/jpeg', 0.92); }
-    catch(e) { dataUrl = ''; }
-    shots.push(dataUrl); shotCount++;
-    if(totalShots===4 && shotCount<4){
-      clearAll(); updateIndicator();
-      var nf = currentFrameIds[shotCount];
-      document.getElementById('boothTitle').textContent = FRAMES[nf].label;
-      loadFrameImg(nf); flash();
+  // 프레임 오버레이 후 완료
+  function finish(){
+    shooting=false;
+    document.getElementById('shutter').style.opacity='1';
+    var url;
+    try{url=cv.toDataURL('image/jpeg',0.92);}catch(e){url='';}
+    shots.push(url);
+    shotIdx++;
+    if(fids.length===4&&shotIdx<4){
+      clearStickers(); updateDots();
+      loadFimg(fids[shotIdx]);
+      document.getElementById('bTitle').textContent=FRAMES[fids[shotIdx]].label;
+      flash();
     } else {
-      if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; }
-      if(totalShots===4) buildFour(); else showResult(dataUrl);
+      if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
+      if(fids.length===4) build4(); else showResult(url);
     }
   }
 
-  // ④ 프레임 PNG 오버레이
-  var cached = frameCache[fid];
-  if(cached){
-    try{ ctx.drawImage(cached,0,0,CW,CH); }catch(e){}
-    done();
+  // 캐시된 프레임 사용
+  if(cache[fid]){
+    try{ctx.drawImage(cache[fid],0,0,CW,CH);}catch(e){}
+    finish();
   } else {
-    var tmp = new Image();
-    tmp.crossOrigin = 'anonymous';
-    tmp.onload  = function(){ try{ctx.drawImage(tmp,0,0,CW,CH);}catch(e){} frameCache[fid]=tmp; done(); };
-    tmp.onerror = function(){ done(); };
-    tmp.src = f.src;
+    var fi=document.getElementById('fimg');
+    if(fi.complete&&fi.naturalWidth>0){
+      try{ctx.drawImage(fi,0,0,CW,CH);}catch(e){}
+      cache[fid]=fi;
+      finish();
+    } else {
+      fi.onload=function(){
+        try{ctx.drawImage(fi,0,0,CW,CH);}catch(e){}
+        cache[fid]=fi;
+        finish();
+      };
+      fi.onerror=finish;
+    }
   }
 }
 
-
 function flash(){
-  const fc=document.getElementById('frameContainer');
-  const fl=document.createElement('div');
-  fl.style.cssText='position:absolute;inset:0;background:white;z-index:20;pointer-events:none;transition:opacity .25s';
-  fc.appendChild(fl);
-  setTimeout(()=>{ fl.style.opacity='0'; setTimeout(()=>fl.remove(),250); },30);
+  var fb=document.getElementById('fbox');
+  var fl=document.createElement('div');
+  fl.style.cssText='position:absolute;inset:0;background:#fff;z-index:20;pointer-events:none;transition:opacity .2s';
+  fb.appendChild(fl);
+  setTimeout(function(){fl.style.opacity='0';setTimeout(function(){fl.remove();},200);},30);
 }
 
-function buildFour(){
-  const GAP=12, BASE=1000;
-  // 각 컷 크기 (첫 번째 프레임 기준)
-  const f0=FRAMES[currentFrameIds[0]];
-  const cw=f0.aspect>=1?BASE:Math.round(BASE*f0.aspect);
-  const ch=f0.aspect>=1?Math.round(BASE/f0.aspect):BASE;
-  const cv=document.getElementById('canvas');
+function build4(){
+  var GAP=12,BASE=1000;
+  var f0=FRAMES[fids[0]];
+  var cw=f0.aspect>=1?BASE:Math.round(BASE*f0.aspect);
+  var ch=f0.aspect>=1?Math.round(BASE/f0.aspect):BASE;
+  var cv=document.getElementById('canvas');
   cv.width=cw*2+GAP*3; cv.height=ch*2+GAP*3;
-  const ctx=cv.getContext('2d');
+  var ctx=cv.getContext('2d');
   ctx.fillStyle='#1a0a00'; ctx.fillRect(0,0,cv.width,cv.height);
-  const pos=[[GAP,GAP],[cw+GAP*2,GAP],[GAP,ch+GAP*2],[cw+GAP*2,ch+GAP*2]];
-  let done=0;
-  shots.forEach((src,i)=>{
-    const img=new Image();
+  var pos=[[GAP,GAP],[cw+GAP*2,GAP],[GAP,ch+GAP*2],[cw+GAP*2,ch+GAP*2]];
+  var done=0;
+  shots.forEach(function(src,i){
+    var img=new Image();
     img.onload=function(){
       ctx.drawImage(img,pos[i][0],pos[i][1],cw,ch);
       done++;
       if(done===4){
-        ctx.fillStyle='rgba(232,160,32,0.5)';
+        ctx.fillStyle='rgba(232,160,32,.5)';
         ctx.font='bold 24px monospace';
         ctx.textAlign='center';
         ctx.fillText('TEXAS ROADHOUSE',cv.width/2,cv.height-14);
-        showResult(cv.toDataURL('image/jpeg',0.92));
+        showResult(cv.toDataURL('image/jpeg',.92));
       }
     };
     img.src=src;
@@ -569,138 +508,145 @@ function buildFour(){
 }
 
 function showResult(url){
-  document.getElementById('resultImg').src=url;
-  document.getElementById('scBooth').style.display='none';
-  document.getElementById('scResult').style.display='flex';
+  document.getElementById('rimg').src=url;
+  document.getElementById('sBooth').style.display='none';
+  document.getElementById('sResult').style.display='flex';
 }
 
-function downloadPhoto(){
-  const a=document.createElement('a');
+function dlPhoto(){
+  var a=document.createElement('a');
   a.download='TxRH-Christmas-'+Date.now()+'.jpg';
-  a.href=document.getElementById('resultImg').src; a.click();
+  a.href=document.getElementById('rimg').src;
+  a.click();
 }
 
-function openInstagram(){
-  downloadPhoto();
-  setTimeout(()=>{
-    const ua=navigator.userAgent.toLowerCase();
-    if(/iphone|ipad|ipod/.test(ua)) window.location.href='instagram://app';
+function toInsta(){
+  dlPhoto();
+  setTimeout(function(){
+    var ua=navigator.userAgent.toLowerCase();
+    if(/iphone|ipad/.test(ua)) window.location.href='instagram://app';
     else if(/android/.test(ua)) window.location.href='intent://instagram.com/#Intent;package=com.instagram.android;scheme=https;end';
     else window.open('https://www.instagram.com/','_blank');
-    setTimeout(()=>{ document.getElementById('igModal').style.display='flex'; },1400);
-  },700);
+    setTimeout(function(){document.getElementById('mInsta').style.display='flex';},1400);
+  },600);
 }
-function closeIgModal(){ document.getElementById('igModal').style.display='none'; }
+function closeInsta(){document.getElementById('mInsta').style.display='none';}
 
-function retake(){
-  document.getElementById('scResult').style.display='none';
-  shotCount=0; shots=[]; isShooting=false; clearAll(); updateIndicator();
-  document.getElementById('shutterBtn').style.opacity='1';
-  const fid=currentFrameIds[0];
-  document.getElementById('boothTitle').textContent=FRAMES[fid].label;
-  loadFrameImg(fid);
-  document.getElementById('scBooth').style.display='flex';
-  makeSnow(); startCamera();
+function retry(){
+  document.getElementById('sResult').style.display='none';
+  shotIdx=0; shots=[]; shooting=false; clearStickers(); updateDots();
+  document.getElementById('shutter').style.opacity='1';
+  loadFimg(fids[0]);
+  document.getElementById('bTitle').textContent=FRAMES[fids[0]].label;
+  document.getElementById('sBooth').style.display='flex';
+  startCam();
 }
 
 function goLanding(){
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  isShooting=false;
-  document.getElementById('shutterBtn').style.opacity='1';
-  document.getElementById('scBooth').style.display='none';
-  document.getElementById('scResult').style.display='none';
-  document.getElementById('scLanding').style.display='flex';
+  if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
+  shooting=false;
+  document.getElementById('sBooth').style.display='none';
+  document.getElementById('sResult').style.display='none';
+  document.getElementById('sLanding').style.display='flex';
 }
 
 // ── 스티커 ──
 function addSticker(emoji){
-  const layer=document.getElementById('stickerLayer');
-  const fc=document.getElementById('frameContainer');
-  const el=document.createElement('div');
-  el.className='sticker-item';
+  var sl=document.getElementById('sl');
+  var fb=document.getElementById('fbox');
+  var el=document.createElement('div');
+  el.className='si';
   el.innerHTML='<span style="font-size:34px;line-height:1;display:block">'+emoji+'</span>';
-  el.dataset.x=fc.offsetWidth/2-17+Math.random()*20-10;
-  el.dataset.y=fc.offsetHeight/2-17+Math.random()*20-10;
-  el.dataset.scale=1; el.dataset.rot=0;
-  applyStickerTransform(el); attachStickerEvents(el);
-  layer.appendChild(el);
+  el.dataset.x=fb.offsetWidth/2-17;
+  el.dataset.y=fb.offsetHeight/2-17;
+  el.dataset.s=1; el.dataset.r=0;
+  applyT(el); bindGesture(el); sl.appendChild(el);
 }
-function showBubbleModal(){ document.getElementById('bubbleModal').style.display='flex'; setTimeout(()=>document.getElementById('bubbleInput').focus(),80); }
-function closeBubbleModal(){ document.getElementById('bubbleModal').style.display='none'; document.getElementById('bubbleInput').value=''; }
+
+function openBubble(){
+  document.getElementById('mBubble').style.display='flex';
+  setTimeout(function(){document.getElementById('bInput').focus();},80);
+}
+function closeBubble(){
+  document.getElementById('mBubble').style.display='none';
+  document.getElementById('bInput').value='';
+}
 function addBubble(){
-  const txt=document.getElementById('bubbleInput').value.trim(); if(!txt) return;
-  const layer=document.getElementById('stickerLayer');
-  const fc=document.getElementById('frameContainer');
-  const el=document.createElement('div');
-  el.className='sticker-item';
-  el.dataset.x=fc.offsetWidth/2-60; el.dataset.y=fc.offsetHeight/2-24;
-  el.dataset.scale=1; el.dataset.rot=0;
-  el.innerHTML='<div style="position:relative;background:rgba(255,248,238,0.94);border:2.5px solid #c0392b;border-radius:8px;padding:6px 11px;max-width:160px;font-family:\'Noto Sans KR\',sans-serif;font-size:13px;color:#1a0a00;font-weight:700;white-space:nowrap;box-shadow:2px 2px 0 #8b1a1a">'+txt+'<div style="position:absolute;bottom:-11px;left:16px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid #c0392b"></div></div>';
-  applyStickerTransform(el); attachStickerEvents(el);
-  layer.appendChild(el); closeBubbleModal();
+  var txt=document.getElementById('bInput').value.trim();
+  if(!txt) return;
+  var sl=document.getElementById('sl');
+  var fb=document.getElementById('fbox');
+  var el=document.createElement('div');
+  el.className='si';
+  el.dataset.x=fb.offsetWidth/2-60; el.dataset.y=fb.offsetHeight/2-24;
+  el.dataset.s=1; el.dataset.r=0;
+  el.innerHTML='<div style="position:relative;background:rgba(255,248,238,.94);border:2.5px solid #c0392b;border-radius:8px;padding:6px 11px;max-width:160px;font-family:Noto Sans KR,sans-serif;font-size:13px;color:#1a0a00;font-weight:700;white-space:nowrap;box-shadow:2px 2px 0 #8b1a1a">'+txt+'<div style="position:absolute;bottom:-11px;left:16px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid #c0392b"></div></div>';
+  applyT(el); bindGesture(el); sl.appendChild(el);
+  closeBubble();
 }
-function applyStickerTransform(el){
+
+function applyT(el){
   el.style.left=parseFloat(el.dataset.x)+'px';
   el.style.top=parseFloat(el.dataset.y)+'px';
-  el.style.transform='rotate('+el.dataset.rot+'deg) scale('+el.dataset.scale+')';
+  el.style.transform='rotate('+el.dataset.r+'deg) scale('+el.dataset.s+')';
 }
-function attachStickerEvents(el){
-  const fc=document.getElementById('frameContainer');
-  let ss={x:0,y:0,ex:0,ey:0}, ps={dist:0,angle:0,scale:1,rot:0}, tapTime=0;
-  el.addEventListener('touchstart',e=>{
+
+function bindGesture(el){
+  var fb=document.getElementById('fbox');
+  var ss={x:0,y:0,ex:0,ey:0}, ps={d:0,a:0,s:1,r:0}, tap=0;
+  el.addEventListener('touchstart',function(e){
     e.stopPropagation();
     if(e.touches.length===1){
-      e.preventDefault(); gestureTarget=el;
-      ss={x:e.touches[0].clientX,y:e.touches[0].clientY,ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)};
+      e.preventDefault(); gTarget=el;
+      ss={x:e.touches[0].clientX,y:e.touches[0].clientY,
+          ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)};
     } else if(e.touches.length===2){
-      e.preventDefault(); gestureTarget=el;
-      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
-      ps={dist:Math.hypot(dx,dy),angle:Math.atan2(dy,dx)*180/Math.PI,scale:parseFloat(el.dataset.scale)||1,rot:parseFloat(el.dataset.rot)||0};
+      e.preventDefault(); gTarget=el;
+      var dx=e.touches[0].clientX-e.touches[1].clientX;
+      var dy=e.touches[0].clientY-e.touches[1].clientY;
+      ps={d:Math.hypot(dx,dy),a:Math.atan2(dy,dx)*180/Math.PI,
+          s:parseFloat(el.dataset.s)||1,r:parseFloat(el.dataset.r)||0};
     }
   },{passive:false});
-  el.addEventListener('touchmove',e=>{
+  el.addEventListener('touchmove',function(e){
     e.stopPropagation(); e.preventDefault();
-    const wr=fc.getBoundingClientRect();
-    if(e.touches.length===1&&gestureTarget===el){
+    var wr=fb.getBoundingClientRect();
+    if(e.touches.length===1&&gTarget===el){
       el.dataset.x=Math.max(-30,Math.min(wr.width-10,ss.ex+(e.touches[0].clientX-ss.x)));
       el.dataset.y=Math.max(-30,Math.min(wr.height-10,ss.ey+(e.touches[0].clientY-ss.y)));
-    } else if(e.touches.length===2&&gestureTarget===el){
-      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
-      el.dataset.scale=Math.max(0.2,Math.min(5,ps.scale*(Math.hypot(dx,dy)/ps.dist)));
-      el.dataset.rot=ps.rot+(Math.atan2(dy,dx)*180/Math.PI-ps.angle);
+    } else if(e.touches.length===2&&gTarget===el){
+      var dx=e.touches[0].clientX-e.touches[1].clientX;
+      var dy=e.touches[0].clientY-e.touches[1].clientY;
+      el.dataset.s=Math.max(0.2,Math.min(5,ps.s*(Math.hypot(dx,dy)/ps.d)));
+      el.dataset.r=ps.r+(Math.atan2(dy,dx)*180/Math.PI-ps.a);
     }
-    applyStickerTransform(el);
+    applyT(el);
   },{passive:false});
-  el.addEventListener('touchend',e=>{
+  el.addEventListener('touchend',function(e){
     e.stopPropagation();
-    if(e.touches.length===0){ const now=Date.now(); if(now-tapTime<300) el.remove(); tapTime=now; gestureTarget=null; }
+    if(e.touches.length===0){
+      var now=Date.now();
+      if(now-tap<300) el.remove();
+      tap=now; gTarget=null;
+    }
   });
-  let mDrag=false, ms={x:0,y:0,ex:0,ey:0};
-  el.addEventListener('mousedown',e=>{ e.stopPropagation(); mDrag=true; gestureTarget=el; ms={x:e.clientX,y:e.clientY,ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)}; });
-  document.addEventListener('mousemove',e=>{
-    if(!mDrag||gestureTarget!==el) return;
-    const wr=fc.getBoundingClientRect();
+  var ms={x:0,y:0,ex:0,ey:0},md=false;
+  el.addEventListener('mousedown',function(e){
+    e.stopPropagation(); md=true; gTarget=el;
+    ms={x:e.clientX,y:e.clientY,ex:parseFloat(el.dataset.x),ey:parseFloat(el.dataset.y)};
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!md||gTarget!==el) return;
+    var wr=fb.getBoundingClientRect();
     el.dataset.x=Math.max(-30,Math.min(wr.width-10,ms.ex+(e.clientX-ms.x)));
     el.dataset.y=Math.max(-30,Math.min(wr.height-10,ms.ey+(e.clientY-ms.y)));
-    applyStickerTransform(el);
+    applyT(el);
   });
-  document.addEventListener('mouseup',()=>{ mDrag=false; gestureTarget=null; });
-  el.addEventListener('dblclick',()=>el.remove());
+  document.addEventListener('mouseup',function(){md=false;gTarget=null;});
+  el.addEventListener('dblclick',function(){el.remove();});
 }
-function clearAll(){ document.getElementById('stickerLayer').innerHTML=''; }
 
-function makeSnow(){
-  const c=document.getElementById('snowflakes'); c.innerHTML='';
-  for(let i=0;i<14;i++){
-    const s=document.createElement('div'); s.className='sf';
-    s.textContent=['*','·','✦','❄'][Math.floor(Math.random()*4)];
-    s.style.left=Math.random()*100+'%';
-    s.style.animationDuration=(4+Math.random()*6)+'s';
-    s.style.animationDelay=(Math.random()*5)+'s';
-    s.style.fontSize=(7+Math.random()*9)+'px';
-    c.appendChild(s);
-  }
-}
+function clearStickers(){document.getElementById('sl').innerHTML='';}
 </script>
 </body>
 </html>
